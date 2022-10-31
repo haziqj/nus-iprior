@@ -502,11 +502,28 @@ for some constants $w_1,\dots,w_n \in \bbR$, because $\cF$ is the completion of 
 
 ## The Fisher information
 
+::: {.lemma name="Fisher information for regression function"}
+The Fisher information for $f$ is given by
+$$
+\cI_f = \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}h(\cdot,x_i) \otimes h(\cdot,x_j)
+$$
+where $\otimes$ is...
+:::
 
+### The Fisher information (cont.)
 
+It's helpful to think of $\cI_f$ as a bilinear form $\cI_f:\cF \times \cF \to \bbR$ defined by
+$$
+\cI_f = -\E\nabla^2 L(f|y),
+$$
+so the Fisher information between two point evaluation functionals of is 
+$$
+\cI\big(f(x), f(x') \big) = \cI_f\big(h(\cdot,x), h(\cdot,x') \big) = \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}h(x,x_i) h(x',x_j).
+$$
 
-
-
+::: {.example}
+Let 
+:::
 
 
 
@@ -545,11 +562,7 @@ $$
 $$
 
 
-It's helpful to think of $\cI_f$ as a bilinear form $\cI_f:\cF \times \cF \to \bbR$ defined by
-$$
-\cI_f = -\E\nabla^2 L(f|y)
-$$
-so between two linear functionals of f....
+
 
 ###
 
