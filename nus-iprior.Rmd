@@ -38,7 +38,8 @@ editor_options:
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   echo = FALSE, fig.height = 3.2, fig.width = 6, cache = TRUE,
-  cache.path = "_cache/", fig.path = "figure/", warning = FALSE, message = FALSE
+  cache.path = "_cache/", fig.path = "figure/", warning = FALSE, message = FALSE,
+  fig.align = "center"
 )
 options(width = 55)  # if 4:3 set to 55, otherwise 70
 library(tidyverse)
@@ -59,29 +60,29 @@ solidpink <- "#8E3B46"
 ```
 
 
-### Abstract
+<!-- ### Abstract -->
 
-Regression analysis is undoubtedly an important tool to understand the relationship between one or more explanatory and independent variables of interest. 
-The problem of estimating a generic regression function in a model with normal errors is considered.
-For this purpose, a novel objective prior for the regression function is proposed, defined as the distribution maximizing entropy (subject to a suitable constraint) based on the Fisher information on the regression function.
-This prior is called the I-prior.
-The regression function is then estimated by its posterior mean under the I-prior, and accompanying hyperparameters are estimated via maximum marginal likelihood. 
-Estimation of I-prior models is simple and inference straightforward, while predictive performances are comparative, and often better, to similar leading state-of-the-art models--as will be illustrated by several data examples.
-Further plans for research in this area are also presented, including variable selection for interaction effects and extending the I-prior methodology to non-Gaussian errors.
-Please visit the project website for further details: https://phd.haziqj.ml/
+<!-- Regression analysis is undoubtedly an important tool to understand the relationship between one or more explanatory and independent variables of interest.  -->
+<!-- The problem of estimating a generic regression function in a model with normal errors is considered. -->
+<!-- For this purpose, a novel objective prior for the regression function is proposed, defined as the distribution maximizing entropy (subject to a suitable constraint) based on the Fisher information on the regression function. -->
+<!-- This prior is called the I-prior. -->
+<!-- The regression function is then estimated by its posterior mean under the I-prior, and accompanying hyperparameters are estimated via maximum marginal likelihood.  -->
+<!-- Estimation of I-prior models is simple and inference straightforward, while predictive performances are comparative, and often better, to similar leading state-of-the-art models--as will be illustrated by several data examples. -->
+<!-- Further plans for research in this area are also presented, including variable selection for interaction effects and extending the I-prior methodology to non-Gaussian errors. -->
+<!-- Please visit the project website for further details: https://phd.haziqj.ml/ -->
 
-\vspace{1em}
-Keywords: Bayes, Fisher information, RKHS, Gaussian process, EM algorithm
+<!-- \vspace{1em} -->
+<!-- Keywords: Bayes, Fisher information, RKHS, Gaussian process, EM algorithm -->
 
-### Plan
+<!-- ### Plan -->
 
-- Introduction
-- Some basic functional analysis (?)
-- The I-prior 
-- Estimation
-- Inference
-- Examples
-- Further work (variable selection, interaction effects, non-gaussian errors)
+<!-- - Introduction -->
+<!-- - Some basic functional analysis (?) -->
+<!-- - The I-prior  -->
+<!-- - Estimation -->
+<!-- - Inference -->
+<!-- - Examples -->
+<!-- - Further work (variable selection, interaction effects, non-gaussian errors) -->
 
 # Introduction
 
@@ -161,7 +162,7 @@ f(x_{kj}, j) =
 \phantom{f_1(x_{kj})}
 $$
 }
-\vspace{-0.5em}
+\vspace{-2.5em}
 
 ::: {.onlyenv latex=<1>}
 
@@ -191,9 +192,7 @@ ggplot(dat, aes(x, y, col = grp)) +
 
 Suppose $f\in\cF$ where $\cF$ is a space of "smoothing functions" (models like LOESS, kernel regression, smoothing splines, etc.).
 
-\vspace{1em}
-
-```{r smooth1} 
+```{r smooth1, fig.height = 2.8} 
 dat <- iprior::gen_smooth() %>% rename(x = X)
 ggplot(dat, aes(x, y)) +
   geom_point() +
@@ -313,7 +312,7 @@ ggplot(dat, aes(x, y)) +
 ### Introduction (cont.)
 
 Choose $h(x,x') = e^{-\frac{\lVert x - x' \rVert^2}{2l^2}}$ (Gaussian kernel).
-Sample paths from the I-prior:
+Sample paths from I-prior:
 
 \vspace{1em}
 
@@ -407,8 +406,6 @@ plot_fitted_navyblue(mod) +
 ### Why I-priors?
 
 
-
-
 ::: {.columns}
 
 ::: {.column width=48%}
@@ -422,21 +419,18 @@ Advantages
 
 - Often yield comparable (or better) predictions than competing ML algorithms.
 
-<!-- Competitors -->
-
-<!-- - Tikhonov regulariser (e.g. cubic spline smoother) -->
-
-<!-- - Gaussian process regression -->
-
 :::
 
 ::: {.column width=48%}
+\vspace{-1.5em}
 ```{r, out.width = "90%"}
 knitr::include_graphics("figure/wordcloud.pdf")
 ```
 :::
 
 :::
+
+\vspace{0.5em}
 
 Competitors:
 
@@ -451,9 +445,90 @@ $$
 
 ## Reproducing kernel Hilbert spaces
 
+> Assumption: Let $f \in \cF$ be an RKHS with kernel $h$ over a set $\cX$.
 
+::: {.definition name="Hilbert spaces"}
+A *Hilbert space* $\cF$ is a vector space equipped with a positive semidefinite inner product $\langle\cdot,\cdot\rangle_\cF : \cF \times \cF \to \bbR$.
+:::
+
+<!-- ::: {.definition name="Kernels"} -->
+<!-- A function $h:\cX \times \cX \to \bbR$ is called a *kernel* if $\exists \cF$ and  $\phi:\cX\to\cF$ such that $\forall x,x' \in \cX$, -->
+<!-- $h(x,x') = \langle \phi(x), \phi(x') \rangle$. -->
+<!-- ::: -->
+
+::: {.definition name="Reproducing kernels"}
+A symmetric, bivariate function $h:\cX \times \cX \to \bbR$ is called a *kernel*, and it is a *reproducing kernel* of $\cF$ if $h$ satisfies $\forall x \in \cX$, 
+
+i. $h(\cdot,x) \in \cF$; and 
+ii. $\langle f, h(\cdot, x) \rangle_\cF = f(x)$, $\forall f \in \cF$. 
+
+In particular, $\forall x,x'\in\cF$,
+$h(x,x') = \langle h(\cdot, x), h(\cdot, x') \rangle_\cF$.
+:::
+
+### Reproducing kernel Hilbert spaces (cont.)
+
+- In ML literature, Mercer's Theorem states
+$$
+h(x,x') = \langle \phi(x), \phi(x') \rangle_\cV \hspace{1em}\Leftrightarrow\hspace{1em} h \text{ is semi p.d.}
+$$
+where $\phi: \cX \to \cV$ is a mapping from $\cX$ to the *feature space* $\cV$.
+
+- In many ML models, need not specify $\phi$ explicitly; computation is made simpler by the use of kernels.
+
+```{r featuremap, out.width = "60%"}
+knitr::include_graphics("figure/featuremap.png")
+```
+
+
+### Reproducing kernel Hilbert spaces (cont.)
+
+::: {.theorem}
+There is a bijection between
+
+i. the set of positive semidefinite functions; and
+ii. the set of RKHSs.
+:::
+
+::: {.corollary}
+Any $f\in\cF$ can be approximated arbitrarily well by functions of the form
+$$
+\tilde f(x) = \sum_{i=1}^n w_ih(x,x_i) 
+$$
+for some constants $w_1,\dots,w_n \in \bbR$, because $\cF$ is the completion of the vector space $\tilde \cF = \operatorname{span}\{ h(\cdot,x) \mid x \in \cX \}$ equipped with the squared norm $\lVert \tilde f \rVert^2 = \sum_{i,j=1}^n w_iw_jh(x_i,x_j)$.
+:::
+
+### Examples of RKHSs
 
 ## The Fisher information
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###
+
 
 Suppose further that $f\in\cF$ where $\cF$ is a reproducing kernel Hilbert space (RKHS) with reproducing kernel $h:\cX\times\cX\to\bbR$.
 Then \eqref{mod1} can be expressed as 
