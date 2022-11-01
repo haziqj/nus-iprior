@@ -490,13 +490,13 @@ i. the set of positive semidefinite functions; and
 ii. the set of RKHSs.
 :::
 
-::: {.corollary}
-Any $f\in\cF$ can be approximated arbitrarily well by functions of the form
-$$
-\tilde f(x) = \sum_{i=1}^n h(x,x_i) w_i
-$$
-for some constants $w_1,\dots,w_n \in \bbR$, because $\cF$ is the completion of the vector space $\tilde \cF = \operatorname{span}\{ h(\cdot,x) \mid x \in \cX \}$ equipped with the squared norm $\lVert \tilde f \rVert^2 = \sum_{i,j=1}^n w_iw_jh(x_i,x_j)$.
-:::
+<!-- ::: {.corollary} -->
+<!-- Any $f\in\cF$ can be approximated arbitrarily well by functions of the form -->
+<!-- $$ -->
+<!-- \tilde f(x) = \sum_{i=1}^n h(x,x_i) w_i -->
+<!-- $$ -->
+<!-- for some constants $w_1,\dots,w_n \in \bbR$, because $\cF$ is the completion of the vector space $\tilde \cF = \operatorname{span}\{ h(\cdot,x) \mid x \in \cX \}$ equipped with the squared norm $\lVert \tilde f \rVert^2 = \sum_{i,j=1}^n w_iw_jh(x_i,x_j)$. -->
+<!-- ::: -->
 
 ### Examples of RKHSs
 
@@ -541,17 +541,19 @@ we have:
 \end{align}
 
 
-### The I-prior
+## The I-prior
 
-The kernel \eqref{eq:fikern} induces a finite-dimensional RKHS $\cF_n < \cF$, consisting of functions of the form $\tilde f(x) = \sum_{i=1}^n h(x,x_i)w_i$ for some real-valued $w_i$s.
-This RKHS is equipped with the squared norm
+::: {.lemma}
+The kernel \eqref{eq:fikern} induces a finite-dimensional RKHS $\cF_n < \cF$, consisting of functions of the form $\tilde f(x) = \sum_{i=1}^n h(x,x_i)w_i$ (for some real-valued $w_i$s) equipped with the squared norm
 $$
 \lVert \tilde f \rVert^2_{\cF_n} = \sum_{i,j=1}^n \psi^-_{ij}w_iw_j,
 $$
 where $\psi^{-}_{ij}$ is the $(i,j)$th entry of $\Psi^{-1}$.
+:::
 
-<!-- - Let $\cR$ be the orthogonal complement of $\cF_n$ in $\cF$. Then $\cF = \cF_n \oplus \cR$, and any $f\in\cF$ can be uniquely decomposed as $f=\tilde f + r$, with $\tilde f \in \cF_n$ and $r \in \cR$. -->
+- Let $\cR$ be the orthogonal complement of $\cF_n$ in $\cF$. Then $\cF = \cF_n \oplus \cR$, and any $f\in\cF$ can be uniquely decomposed as $f=\tilde f + r$, with $\tilde f \in \cF_n$ and $r \in \cR$.
 
+- The Fisher information for $g$ is zero iff $g \in \cR$. The data only allows us to eastimate $f\in\cF$ by considering functions in $\tilde f \in \cF_n$.
 
 
 ### The I-prior (cont.)
