@@ -502,106 +502,79 @@ for some constants $w_1,\dots,w_n \in \bbR$, because $\cF$ is the completion of 
 
 ## The Fisher information
 
-The log-likelihood of $f$ is given by
+For the regression model \eqref{mod1},
+the log-likelihood of $f$ is given by
 $$
-l(f|y) = \text{const.} - \frac{1}{2} \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}
+\ell(f|y) = \text{const.} - \frac{1}{2} \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}
 \big(y_i - \langle f, h(\cdot,x_i) \rangle_\cF \big) 
 \big(y_j - \langle f, h(\cdot,x_j) \rangle_\cF \big) 
 $$
 
 
 ::: {.lemma name="Fisher information for regression function"}
-The Fisher information for $f$ is given by
+The Fisher information for $f$ is 
 $$
-\cI_f = \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}h(\cdot,x_i) \otimes h(\cdot,x_j)
+\cI_f = -\E\nabla^2 \ell(f|y) = \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}h(\cdot,x_i) \otimes h(\cdot,x_j)
 $$
-where $\otimes$ is...
+where $\otimes$ is the tensor product of two vectors in $\cF$.
 :::
 
 ### The Fisher information (cont.)
 
-It's helpful to think of $\cI_f$ as a bilinear form $\cI_f:\cF \times \cF \to \bbR$ defined by
-$$
-\cI_f = -\E\nabla^2 L(f|y),
-$$
-so the Fisher information between two point evaluation functionals of is 
-$$
-\cI\big(f(x), f(x') \big) = \cI_f\big(h(\cdot,x), h(\cdot,x') \big) = \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}h(x,x_i) h(x',x_j).
-$$
+It's helpful to think of $\cI_f$ as a bilinear form $\cI_f:\cF \times \cF \to \bbR$, making it possible to compute the Fisher information on linear functionals $f_g = \langle f, g \rangle_\cF$, $\forall g\in\cF$ as $\cI_f(g,g) = \langle \cI_f, g\otimes g\rangle_{\cF \otimes \cF}$.
 
-::: {.example}
-Let 
+\vspace{1em}
+
+
+In particular, between two points $f_x:=f(x)$ and $f_{x'}:=f(x')$ 
+\textcolor{gray}{[since $f_x = \langle f,h(\cdot,x)\rangle_\cF$]}
+we have:
+\begin{align}
+\cI_f(x,x') 
+&= \left\langle \cI_f, h(\cdot,x) \otimes h(\cdot,x') \right\rangle_{\cF  \otimes \cF} \nonumber \\
+&=   \left\langle \sum_{i=1}^n\sum_{j=1}^n \psi_{ij} h(\cdot,x_i) \otimes h(\cdot,_j)
+\ , \ h(\cdot,x) \otimes h(\cdot,x') \right\rangle_{\cF  \otimes \cF} \nonumber \\
+&= \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}  
+\left\langle h(\cdot,x) , h(\cdot,x_i) \right\rangle_{\cF}
+\left\langle h(\cdot,x') , h(\cdot,x_j) \right\rangle_{\cF} \nonumber \\
+&= \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}  h(x,x_i)h(x',x_j) =: k(x,x') \label{eq:fikern}
+\end{align}
+
+
+### The I-prior
+
+The kernel \eqref{eq:fikern} induces a finite-dimensional RKHS $\cF_n < \cF$, consisting of functions of the form $\tilde f(x) = \sum_{i=1}^n h(x,x_i)w_i$ for some real-valued $w_i$s.
+This RKHS is equipped with the squared norm
+$$
+\lVert \tilde f \rVert^2_{\cF_n} = \sum_{i,j=1}^n \psi^-_{ij}w_iw_j,
+$$
+where $\psi^{-}_{ij}$ is the $(i,j)$th entry of $\Psi^{-1}$.
+
+<!-- - Let $\cR$ be the orthogonal complement of $\cF_n$ in $\cF$. Then $\cF = \cF_n \oplus \cR$, and any $f\in\cF$ can be uniquely decomposed as $f=\tilde f + r$, with $\tilde f \in \cF_n$ and $r \in \cR$. -->
+
+
+
+### The I-prior (cont.)
+
+::: {.theorem name="I-prior"}
+Let $\nu$ be a volume measure induced by the norm above.
+The solution to 
+$$
+\argmax_p \left\{ -\int_{\cF_n } p(f) \log p(f) \, \nu(\dint f) \right\}
+$$
+subject to the constraint
+$$
+\E_{f \sim p} \lVert f \rVert^2_{\cF_n} = \text{constant}
+$$
+is the Gaussian distribution whose covariance function is $k(x,x')$.
 :::
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###
-
-
-Suppose further that $f\in\cF$ where $\cF$ is a reproducing kernel Hilbert space (RKHS) with reproducing kernel $h:\cX\times\cX\to\bbR$.
-Then \eqref{mod1} can be expressed as 
-\begin{equation}\label{mod2}
-\begin{gathered}
-y_i = \big\langle f, h(\cdot,x_i)\big\rangle_\cF + \epsilon_i \\
-(\epsilon_1,\dots,\epsilon_n)^\top \sim \N(\bzero, \bPsi^{-1})
-\end{gathered}
-\end{equation}
-
-The Fisher information for $f$ is given by
+Equivalently, under the I-prior, $f$ can be written in the form
 $$
-\cI_f = \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}h(\cdot,x_i) \otimes h(\cdot,x_j)
+f(x) = \sum_{i=1}^n h(x,x_i)w_i, \hspace{2em} (w_1,\dots,w_n)^\top \sim \N(0,\Psi)
 $$
 
 
-
-
-###
-
-where each $y_i\in\bbR$,, and $f\in\cF$ a reproducing kernel Hilbert space (RKHS) with kernel $h:\cX\times\cX\to\bbR$.
-The I-prior [@bergsma2019] for the regression function $f$ is the random function defined
-\begin{equation}
-\begin{gathered}
-f(x_i) = f_0(x_i) + \sum_{k=1}^n h(x_i,x_k)w_k \\
-(w_1,\dots,w_n)^\top \sim \N(\bzero, \bPsi)
-\end{gathered}
-\end{equation}
-where $f_0$ is some prior mean for the regression function.
-
-
-<!-- ### Advantages and current state -->
-
-<!-- Advantages -->
-
-
-
-<!-- \pause -->
-
-<!-- Current state of research -->
-
-<!-- - **1 x PhD Thesis**: @jamil2018phdthesis  -->
-<!--     - Theoretical foundations -->
-<!--     - Computational methods -->
-<!--     - Bayesian variable selection -->
-<!--     - \includegraphics[height=.75em]{1F3C6} 2020 Zellner Thesis Award (honourable mention) -->
-<!-- - **3 x manuscripts**: @bergsma2019, @bergsma2020regression, and @jamil4bayesian. -->
-<!-- - **1 x `R` package**: @jamil2017iprior -->
 
 
 
