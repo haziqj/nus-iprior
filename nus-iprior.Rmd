@@ -516,7 +516,7 @@ The Fisher information for $f$ is
 $$
 \cI_f = -\E\nabla^2 \ell(f|y) = \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}h(\cdot,x_i) \otimes h(\cdot,x_j)
 $$
-where $\otimes$ is the tensor product of two vectors in $\cF$.
+where '$\otimes$' is the tensor product of two vectors in $\cF$.
 :::
 
 ### The Fisher information (cont.)
@@ -553,7 +553,7 @@ where $\psi^{-}_{ij}$ is the $(i,j)$th entry of $\Psi^{-1}$.
 
 - Let $\cR$ be the orthogonal complement of $\cF_n$ in $\cF$. Then $\cF = \cF_n \oplus \cR$, and any $f\in\cF$ can be uniquely decomposed as $f=\tilde f + r$, with $\tilde f \in \cF_n$ and $r \in \cR$.
 
-- The Fisher information for $g$ is zero iff $g \in \cR$. The data only allows us to eastimate $f\in\cF$ by considering functions in $\tilde f \in \cF_n$.
+- The Fisher information for $g$ is zero iff $g \in \cR$. The data only allows us to estimate $f\in\cF$ by considering functions in $\tilde f \in \cF_n$.
 
 
 ### The I-prior (cont.)
