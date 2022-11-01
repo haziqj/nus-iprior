@@ -521,7 +521,7 @@ where '$\otimes$' is the tensor product of two vectors in $\cF$.
 
 ### The Fisher information (cont.)
 
-It's helpful to think of $\cI_f$ as a bilinear form $\cI_f:\cF \times \cF \to \bbR$, making it possible to compute the Fisher information on linear functionals $f_g = \langle f, g \rangle_\cF$, $\forall g\in\cF$ as $\cI_f(g,g) = \langle \cI_f, g\otimes g\rangle_{\cF \otimes \cF}$.
+It's helpful to think of $\cI_f$ as a bilinear form $\cI_f:\cF \times \cF \to \bbR$, making it possible to compute the Fisher information on linear functionals $f_g = \langle f, g \rangle_\cF$, $\forall g\in\cF$ as $\cI_{f_g} = \langle \cI_f, g\otimes g\rangle_{\cF \otimes \cF}$.
 
 \vspace{1em}
 
