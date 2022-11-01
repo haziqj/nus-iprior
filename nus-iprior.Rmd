@@ -493,7 +493,7 @@ ii. the set of RKHSs.
 ::: {.corollary}
 Any $f\in\cF$ can be approximated arbitrarily well by functions of the form
 $$
-\tilde f(x) = \sum_{i=1}^n w_ih(x,x_i) 
+\tilde f(x) = \sum_{i=1}^n h(x,x_i) w_i
 $$
 for some constants $w_1,\dots,w_n \in \bbR$, because $\cF$ is the completion of the vector space $\tilde \cF = \operatorname{span}\{ h(\cdot,x) \mid x \in \cX \}$ equipped with the squared norm $\lVert \tilde f \rVert^2 = \sum_{i,j=1}^n w_iw_jh(x_i,x_j)$.
 :::
@@ -501,6 +501,14 @@ for some constants $w_1,\dots,w_n \in \bbR$, because $\cF$ is the completion of 
 ### Examples of RKHSs
 
 ## The Fisher information
+
+The log-likelihood of $f$ is given by
+$$
+l(f|y) = \text{const.} - \frac{1}{2} \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}
+\big(y_i - \langle f, h(\cdot,x_i) \rangle_\cF \big) 
+\big(y_j - \langle f, h(\cdot,x_j) \rangle_\cF \big) 
+$$
+
 
 ::: {.lemma name="Fisher information for regression function"}
 The Fisher information for $f$ is given by
