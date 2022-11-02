@@ -13,10 +13,6 @@ $if(title)$
 \title{$title$}
 $endif$
 
-$if(title)$
-\title{$title$}
-$endif$
-
 $if(subtitle)$
 \subtitle{$subtitle$}
 $endif$
@@ -136,7 +132,7 @@ $endif$
 % Packages are not loaded by default
 
 \usepackage{polyglossia}  
-% \setdefaultlanguage{english}
+\setdefaultlanguage{english}
 % \setotherlanguage{arabic} % to use arabic
 % \newfontfamily\arabicfontsf[Script=Arabic]{Amiri}
 
@@ -160,7 +156,7 @@ $endif$
 
 % Bibliography
 $if(bibliography)$
-\usepackage[style=authoryear,giveninits=true,maxcitenames=2,maxbibnames=99,backend=biber,natbib]{biblatex}
+\usepackage[style=apa,giveninits=true,maxcitenames=2,maxbibnames=99,backend=biber,natbib]{biblatex}
 $endif$
 $for(bibliography)$
 \addbibresource{$bibliography$}

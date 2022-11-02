@@ -24,8 +24,7 @@ progressdots: true
 transitions: true
 handout: false
 bibliography: refs.bib
-nocite: '@*'
-refslide: false
+refslide: true
 aspectratio: 43
 editor_options: 
   markdown: 
@@ -162,7 +161,7 @@ f(x_{kj}, j) =
 \phantom{f_1(x_{kj})}
 $$
 }
-\vspace{-2.5em}
+\vspace{-2em}
 
 ::: {.onlyenv latex=<1>}
 
@@ -252,9 +251,9 @@ f(x) = \sum_{i=1}^n h(x,x_i)w_i \\
 \end{equation}
 :::
 
-Therefore, the covariance kernel of $\mathbf f = \big(f(x_1),\dots, f(x_n) \big)^\top$ is determined by the function \vspace{-0.4em}
+Therefore, the covariance kernel of $f(x)$ is determined by the function \vspace{-0.4em}
 $$
-k(x,x') = \sum_{i=1}^n\sum_{j=1}^n \Psi_{i,j} h(x,x_i )h(x',x_j),
+k(x,x') = \sum_{i=1}^n\sum_{j=1}^n \Psi_{ij} h(x,x_i )h(x',x_j),
 $$
 which happens to be **Fisher information** between two linear forms of $f$.
 
@@ -282,9 +281,9 @@ Of interest then are
 
 1. Posterior distribution for the regression function,
 $$
-p(\mathbf f \,|\, \mathbf y) =
-\frac{p(\mathbf y \,|\, \mathbf f)p(\mathbf f)}
-{\int p(\mathbf y \,|\, \mathbf f)p(\mathbf f) \dint \mathbf f}.
+p\big(f \,|\, y\big) =
+\frac{p(y \,|\, f)p(f)}
+{\int p( y \,|\, f)p( f) \dint  f}.
 $$
 
 
@@ -311,10 +310,10 @@ ggplot(dat, aes(x, y)) +
 
 ### Introduction (cont.)
 
-Choose $h(x,x') = e^{-\frac{\lVert x - x' \rVert^2}{2l^2}}$ (Gaussian kernel).
+Choose $h(x,x') = e^{-\frac{\lVert x - x' \rVert^2}{2s^2}}$ (Gaussian kernel).
 Sample paths from I-prior:
 
-\vspace{1em}
+\vspace{0.5em}
 
 ```{r priorsamp, cache = TRUE}
 mod <- iprior(y ~ x, dat, kernel = "se", control = list(silent = TRUE))
@@ -440,6 +439,22 @@ $$
 $$
 
 - Gaussian process regression
+
+### State of the art
+
+\footnotesize
+
+1. \cite{jamil2018phdthesis}
+
+<!-- 2. \fullcite{bergsma2019} -->
+
+<!-- 3. \fullcite{jamil_iprior_2019} -->
+
+<!-- 4. \fullcite{bergsma_regression_2020} -->
+
+<!-- 5. \fullcite{jamil_bayesian_2021} -->
+
+<!-- 6. \fullcite{jamil_bergsma_2022} -->
 
 # Regression using I-priors
 
