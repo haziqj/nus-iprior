@@ -71,3 +71,23 @@ bind_rows(
   facet_grid(. ~ type) +
   theme_classic() +
   coord_cartesian(ylim = c(-2, 2))
+
+# Looking at effect of scale parameters ----------------------------------------
+N <- 100
+prior.samp <- tibble(x = seq(0, 2 * pi, length = N))
+H <- kern_se(prior.samp$x)
+lambda <- c(-2, -1, 0,  0.5, 1, 2, 5, 10)
+w <- rnorm(N, mean = 0, sd = sqrt(psi))
+
+res <- NULL
+for (i in seq_along(lambda)) {
+  tmp <- bind_cols(prior.samp, lambda = lambda[i],
+                   y = as.numeric(lambda[i]) * H %*% w)
+  res <- bind_rows(res, tmp)
+}
+res$lambda <- factor(res$lambda)
+
+ggplot(res, aes(x, y, col = lambda, group = lambda)) +
+  geom_line() +
+  scale_color_viridis_d() +
+  theme_classic() 
