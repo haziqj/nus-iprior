@@ -689,8 +689,7 @@ $$
 ## Posterior regression function
 
 ::: {.lemma}
-Under the normal model \eqref{mod1} subject to the I-prior, the posterior distribution of $f(x)$ is given by
-
+Under the normal model \eqref{mod1} subject to the I-prior
 :::
 
 ## Parameters of the model

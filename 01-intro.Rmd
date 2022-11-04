@@ -1,0 +1,507 @@
+---
+title: "Regression modelling using I-priors"
+subtitle: NUS Department of Statistics & Data Science Seminar
+author: "Haziq Jamil"
+date: "Wednesday, 16 November 2022"
+institute: |
+  | Mathematical Sciences, Faculty of Science, UBD
+  | \url{https://haziqj.ml}
+output: 
+  beamer_presentation:
+    template: ubd_beamer_rmd.tex
+    latex_engine: xelatex
+    slide_level: 3
+    keep_tex: false
+    citation_package: biblatex
+    pandoc_args: ["--lua-filter=/Library/Frameworks/R.framework/Versions/4.2/Resources/library/bookdown/rmarkdown/lua/custom-environment.lua"]    
+    # includes:
+    #   after_body: afterbody.txt
+toc: false
+toctitle: "Overview"
+banner: true
+logo: true
+progressdots: true
+transitions: true
+handout: false
+bibliography: refs.bib
+refslide: false
+aspectratio: 43
+editor_options: 
+  markdown: 
+    wrap: 72
+# header-includes:
+#   - \usetikzlibrary{backgrounds,calc,intersections}
+#   - \usepackage{pgfplots}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, fig.height = 3.2, fig.width = 6, cache = TRUE,
+  cache.path = "_cache/", fig.path = "figure/", warning = FALSE, message = FALSE,
+  fig.align = "center"
+)
+options(width = 55)  # if 4:3 set to 55, otherwise 70
+library(tidyverse)
+library(iprior)
+library(directlabels)
+theme_set(
+  theme_classic() +
+      theme(
+        # axis.title.x = element_text(hjust = 1),
+        # axis.title.y = element_text(angle = 0),
+        axis.ticks = element_blank(),
+        axis.text = element_blank()
+      )
+)
+
+navyblue <- "#002f5c"
+solidpink <- "#8E3B46"
+```
+
+# Introduction
+
+## Regression analysis
+
+For $i=1,\dots,n$, consider the regression model
+
+\begin{equation}\label{mod1}
+\begin{gathered}
+y_i = f(x_i) + \epsilon_i \\
+(\epsilon_1,\dots,\epsilon_n)^\top \sim \N_n(0, \Psi^{-1})
+\end{gathered}
+\end{equation}
+
+where each $y_i\in\bbR$, $x_i\in \cX$ (some set of covariates), and $f$ is a regression function.
+This forms the basis for a multitude of statistical models:
+
+1. Ordinary linear regression when $f$ is parameterised linearly.
+<!-- $f(x_i) = x_i^\top\beta$, with $\cX,\beta\in\bbR^p$. -->
+
+2. Varying intercepts/slopes model when $\cX$ is grouped.
+<!-- $f(x_{ij},j) = f_1(x_i) + f_2(j) + f_{12}(x_{ij},j)$. -->
+
+3. Smoothing models when $f$ is a smooth function.
+
+4. Functional regression when $\cX$ is functional.
+
+::: {.block}
+#### Goal
+To estimate the regression function $f$ given the observations $\{(y_i,x_i)\}_{i=1}^n$.
+:::
+
+### Ordinary linear regression
+
+Suppose $f(x_i) = x_i^\top \beta$ for $i=1,\dots,n$, where $x_i,\beta \in \bbR^p$.
+
+\vspace{1em}
+
+```{r linear-reg}
+set.seed(211022)
+m <- 8
+n <- 15
+dat <- tibble(
+  grp = 1:m,
+  beta0 = rnorm(m, mean = seq(1, 15, length = m), sd = 0.1),
+  beta1 = rnorm(m, mean = -1, sd = 0.01)
+) %>%
+  expand_grid(x = 1:n) %>%
+  mutate(
+    x = seq(0, 10, length = n()) + runif(n(), -1, 1),
+    y = rnorm(n(), mean = beta0 + beta1 * x, sd = 1.5),
+    grp = factor(grp)#, levels = sample(8, 8))
+  )
+
+ggplot(dat, aes(x, y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = navyblue)
+```
+
+### Varying intercepts/slopes model
+
+Suppose each unit $i=1,\dots,n$ relates to the $k$th observation in group $j\in\{1,\dots,m\}$.
+Model the function $f$ additively:
+\only<1>{
+$$
+f(x_{kj}, j) = f_1(x_{kj}) + f_2(j) + f_{12}(x_{kj},j).
+\phantom{\myunderbrace{x_{kj}^\top\beta_1}{f_1}}
+$$
+}
+\only<2>{
+$$
+f(x_{kj}, j) =
+\myunderbrace{x_{kj}^\top\beta_1}{f_1} +
+\myunderbrace{\beta_{0j}}{f_2} +
+\myunderbrace{x_{kj}^\top\beta_{1j}}{f_{12}}
+\phantom{f_1(x_{kj})}
+$$
+}
+\vspace{-2em}
+
+::: {.onlyenv latex=<1>}
+
+```{r var-int-slope1, fig.height = 2.8}
+ggplot(dat, aes(x, y, col = grp)) +
+  geom_point() +
+  # geom_smooth(method = "lm", se = FALSE) +
+  guides(col = "none") +
+  scale_color_viridis_d()
+```
+
+:::
+
+::: {.onlyenv latex=<2>}
+
+```{r var-int-slope2, fig.height = 2.8}
+ggplot(dat, aes(x, y, col = grp)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  guides(col = "none") +
+  scale_color_viridis_d()
+```
+
+:::
+
+### Smoothing models
+
+Suppose $f\in\cF$ where $\cF$ is a space of "smoothing functions" (models like LOESS, kernel regression, smoothing splines, etc.).
+
+```{r smooth1, fig.height = 2.8}
+dat <- iprior::gen_smooth() %>% rename(x = X)
+ggplot(dat, aes(x, y)) +
+  geom_point() +
+  geom_smooth(se = FALSE, col = navyblue)
+```
+
+### Functional regression
+
+Suppose the input set $\cX$ is functional.
+The (linear) regression aims to estimate a coefficient function $\beta:\cT\to\bbR$
+$$
+y_i = \myunderbrace{\int_\cT x_i(t)\beta(t) \dint t}{f(x_i)} + \epsilon_i
+$$
+
+```{r functionalx, fig.height = 2.2 * 1.2, fig.width = 6 * 1.2}
+# Load data set
+data(tecator, package = "caret")
+endpoints <- as_tibble(endpoints)
+colnames(endpoints) <- c("water", "fat", "protein")
+absorp <- as_tibble(absorp)
+colnames(absorp) <- 1:100
+
+dat <-
+  bind_cols(id = seq_len(nrow(endpoints)), endpoints, absorp) %>%
+  slice_sample(n = 100)
+
+p1 <- ggplot(dat, aes(x = 1, y = fat)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, aes(col = fat)) +
+  scale_color_viridis_c() +
+  guides(col = "none") +
+  theme_void()
+
+p2 <- dat %>%
+  pivot_longer(cols = `1`:`100`, names_to = "x") %>%
+  ggplot(aes(as.numeric(x), value, col = fat, group = id)) +
+  geom_line() +
+  scale_color_viridis_c() +
+  guides(col = "none") +
+  theme_void()
+
+cowplot::plot_grid(p1, p2, rel_widths = c(1, 3), labels = c("y", "x"))
+```
+
+## Regression using I-priors
+
+### The I-prior
+
+For the regression model stated in \eqref{mod1}, we assume that $f$ lies in some RKHS of functions $\cF$, with reproducing kernel $h$ over $\cX$.
+
+::: {.definition name="I-prior"}
+\label{def:iprior}
+The entropy maximising prior distribution for $f$, subject to constraints, is \vspace{-0.7em}
+\begin{equation}
+\begin{gathered}\label{iprior}
+f(x) = \sum_{i=1}^n h(x,x_i)w_i \\
+(w_1,\dots,w_n)^\top \sim \N_n(0, \Psi) \vspace{-0.7em}
+\end{gathered}
+\end{equation}
+:::
+
+Therefore, the covariance kernel of $f(x)$ is determined by the function \vspace{-0.4em}
+$$
+k(x,x') = \sum_{i=1}^n\sum_{j=1}^n \Psi_{ij} h(x,x_i )h(x',x_j),
+$$
+which happens to be **Fisher information** between two linear forms of $f$.
+
+### The I-prior (cont.)
+
+Interpretation:
+
+<!-- > The more information about $f$, the larger its prior variance, and hence the smaller the influence of the prior mean (and vice versa). -->
+
+\vspace{-1em}
+
+\begin{empheq}[box=\tcbhighmath]{align*}
+\begin{split}
+&\color{navyblue}\text{The more information about } f, \text{ the larger its prior variance,} \\[-0.2em]
+&\color{navyblue}\text{and hence the smaller the influence of the prior mean (and} \\[-0.2em]
+&\color{navyblue}\text{vice versa).}
+\end{split}
+\end{empheq}
+
+\pause
+
+\vspace{0.2em}
+
+Of interest then are
+
+1. Posterior distribution for the regression function,
+$$
+p\big(f \,|\, y\big) =
+\frac{p(y \,|\, f)p(f)}
+{\int p( y \,|\, f)p( f) \dint  f}.
+$$
+
+
+2. Posterior predictive distribution (given a new data point $x_{new}$)
+$$
+p(y_{new} \,|\, \mathbf y) = \int p( y_{new} \,|\, f_{new}) p( f_{new} \,|\, \mathbf y) \dint f_{new},
+$$
+where $f_{new} = f(x_{new})$.
+
+### Posterior regression function
+
+::: {.lemma}
+
+:::
+
+### Illustration
+
+::: {.onlyenv latex=<1>}
+
+Observations $\{(y_i,x_i) \mid y_i,x_i\in\bbR \ \forall i=1,\dots,n\}$.
+
+\vspace{1em }
+
+```{r datapoints, cache = TRUE}
+set.seed(197)
+dat <- gen_smooth() %>% rename(x = X)
+ggplot(dat, aes(x, y)) +
+  geom_point() +
+  theme_classic() +
+  coord_cartesian(ylim = c(min(dat$y), max(dat$y)),
+                  xlim = c(min(dat$x), max(dat$x)))
+```
+
+:::
+
+::: {.onlyenv latex=<2>}
+
+Choose $h(x,x') = e^{-\frac{\lVert x - x' \rVert^2}{2s^2}}$ (Gaussian kernel).
+Sample paths from I-prior:
+
+\vspace{0.5em}
+
+```{r priorsamp, cache = TRUE}
+mod <- iprior(y ~ x, dat, kernel = "se", control = list(silent = TRUE))
+psi <- get_psi(mod)
+lambda <- get_lambda(mod)
+
+N <- 150
+B <- 100
+prior.samp <- tibble(x = seq(min(dat$x) - 1, max(dat$x) + 1, length = N))
+H <- kern_se(prior.samp$x)
+for (i in 1:B) {
+  w <- rnorm(N, mean = 0, sd = sqrt(psi))
+  prior.samp <- cbind(prior.samp, mean(dat$y) + 
+                        as.numeric(lambda * H %*% w))
+}
+colnames(prior.samp) <- c("x", paste0("y", 1:B))
+prior.samp <- reshape2::melt(prior.samp, id = "x")
+
+ggplot(dat, aes(x, y)) +
+  geom_point() +
+  geom_line(data = prior.samp, aes(x, value, group = variable),
+            size = 0.2, alpha = 0.4, col = "gray50") +
+  theme_classic() +
+  coord_cartesian(ylim = c(min(dat$y), max(dat$y)),
+                  xlim = c(min(dat$x), max(dat$x)))
+```
+
+:::
+
+::: {.onlyenv latex=<3>}
+
+Sample paths from the posterior of $f$:
+
+\vspace{1em}
+
+```{r postsamp, cache = TRUE}
+H <- kern_se(dat$x)
+n <- nrow(H)
+Vy <- (H * lambda) %*% (H * lambda) + diag(1/psi, n)
+w <- mvtnorm::rmvnorm(100, mean = mod$w, sigma = solve(Vy))
+
+post.samp <- tibble(x = seq(min(dat$x) - 1, max(dat$x) + 1, length = N))
+h <- kern_se(dat$x, post.samp$x)
+
+for (i in 1:B) {
+  post.samp <- cbind(post.samp, mean(dat$y) + 
+                       as.numeric(lambda * h %*% w[i, ]))
+}
+colnames(post.samp) <- c("x", paste0("y", 1:B))
+post.samp <- reshape2::melt(post.samp, id = "x")
+
+ggplot(dat, aes(x, y)) +
+  geom_point() +
+  geom_line(data = post.samp, aes(x, value, group = variable),
+            size = 0.2, alpha = 0.4, col = "gray50") +
+  theme_classic() +
+  coord_cartesian(ylim = c(min(dat$y), max(dat$y)),
+                  xlim = c(min(dat$x), max(dat$x)))
+```
+
+:::
+
+::: {.onlyenv latex=<4>}
+
+Posterior mean estimate for $y=f(x)$ and its 95% credibility interval.
+
+\vspace{1em}
+
+```{r}
+df_pred <- tibble(x = seq(min(dat$x) - 1, max(dat$x) + 1, length = N))
+# df_pred <- tibble(x = dat$x)
+tmp <- predict(mod, df_pred) 
+Vynew <- (h * lambda) %*% solve(Vy, h * lambda) + diag(1 / psi, N)
+
+df_pred <- 
+  df_pred %>%
+  mutate(y = tmp$y, 
+         lower = y + qnorm(0.025) * sqrt(diag(Vynew)), 
+         upper = y + qnorm(0.975) * sqrt(diag(Vynew)))
+
+ggplot(df_pred, aes(x, y)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = navyblue, alpha = 0.25) +
+  geom_point(data = dat, aes(x, y)) +
+  geom_line(col = navyblue, size = 1) +
+  theme_classic() +
+  coord_cartesian(ylim = c(min(dat$y), max(dat$y)),
+                  xlim = c(min(dat$x), max(dat$x)))
+```
+
+:::
+
+
+::: {.onlyenv latex=<4>}
+
+Bayesian stuff, e.g. posterior predictive checks for observations $\{y_1,\dots,y_n\}$.
+
+\vspace{1em}
+
+
+```{r ppc}
+no.of.draws <- 100
+Vy <- (H * lambda) %*% (H * lambda) + diag(1/psi, nrow(H))
+VarY.hat <- (H * lambda) %*% solve(Vy, H * lambda) + diag(1 / psi, nrow(Vy))
+y_fitted <- fitted(mod)$y
+ppc <- t(mvtnorm::rmvnorm(no.of.draws, mean = y_fitted, sigma = VarY.hat))
+melted.ppc <- reshape2::melt(data.frame(x = dat$x, ppc = ppc), id.vars = "x")
+melted.ppc <- cbind(melted.ppc, type = "Posterior predictive check")
+
+ggplot() +
+  scale_x_continuous(breaks = NULL, name = "y") +
+  scale_y_continuous(breaks = NULL) +
+  geom_line(data = melted.ppc,
+            aes(x = value, group = variable, col = "yrep", size = "yrep"),
+            stat = "density", alpha = 0.5) +
+  geom_line(data = dat, aes(x = y, col = "y", size = "y"), stat = "density") +
+   theme(legend.position = "bottom") +
+  scale_colour_manual(
+    name = NULL, labels = c("Observed", "Replications"),
+    values = c("grey10", navyblue)
+  ) +
+  scale_size_manual(
+    name = NULL, labels = c("Observed", "Replications"),
+    values = c(1.5, 0.19)
+  ) +
+  theme_classic() +
+  theme(legend.position = c(0.9, 0.5))
+```
+
+:::
+
+### Why I-priors?
+
+::: {.columns}
+
+::: {.column width=48%}
+
+
+Advantages
+
+- Provides a unifying methodology for regression.
+
+- Simple and parsimonious model specification and estimation.
+
+- Often yield comparable (or better) predictions than competing ML algorithms.
+
+:::
+
+::: {.column width=48%}
+\vspace{-1.5em}
+```{r, out.width = "90%"}
+knitr::include_graphics("figure/wordcloud.pdf")
+```
+:::
+
+:::
+
+\vspace{0.5em}
+
+Competitors:
+
+- Tikhonov regulariser (e.g. cubic spline smoother)
+$$
+\hat f = \argmin_f \sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \int f''(x)^2 \dint x
+$$
+
+- Gaussian process regression \citep{rasmussen2006gaussian}
+
+### State of the art
+
+::: {.columns}
+
+::: {.column width="48%"}
+\vspace{-1.8em}
+```{r wicher, out.width = "30%", fig.align = "right"}
+knitr::include_graphics("figure/wicher.jpg")
+```
+
+:::
+
+::: {.column width="48%"}
+\small
+Professor Wicher Bergsma
+
+*London School of Economics and Political Science*
+:::
+
+:::
+
+\vspace{0.5em}
+
+\scriptsize
+
+1. \fullcite{jamil2018phdthesis}
+
+2. \fullcite{bergsma2019}
+
+3. \fullcite{jamil_iprior_2019}
+
+4. \fullcite{bergsma_regression_2020}
+
+5. \fullcite{jamil_bayesian_2021}
+
+6. \fullcite{jamil_bergsma_2022}
+
