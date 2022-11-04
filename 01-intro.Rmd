@@ -218,20 +218,20 @@ For the regression model stated in \eqref{mod1}, we assume that $f$ lies in some
 
 ::: {.definition name="I-prior"}
 \label{def:iprior}
-The entropy maximising prior distribution for $f$, subject to constraints, is \vspace{-0.7em}
+With $f_0$ a prior guess, the entropy maximising prior distribution for $f$, subject to constraints, is \vspace{-1em}
 \begin{equation}
 \begin{gathered}\label{iprior}
-f(x) = \sum_{i=1}^n h(x,x_i)w_i \\
+f(x) = f_0(x) + \sum_{i=1}^n h(x,x_i)w_i \\
 (w_1,\dots,w_n)^\top \sim \N_n(0, \Psi) \vspace{-0.7em}
 \end{gathered}
 \end{equation}
 :::
 
-Therefore, the covariance kernel of $f(x)$ is determined by the function \vspace{-0.4em}
+Therefore, the covariance kernel of $f(x)$ is determined by the function 
 $$
 k(x,x') = \sum_{i=1}^n\sum_{j=1}^n \Psi_{ij} h(x,x_i )h(x',x_j),
 $$
-which happens to be **Fisher information** between two linear forms of $f$.
+which happens to be the **Fisher information** between evaluations of $f$.
 
 ### The I-prior (cont.)
 
@@ -244,7 +244,7 @@ Interpretation:
 \begin{empheq}[box=\tcbhighmath]{align*}
 \begin{split}
 &\color{navyblue}\text{The more information about } f, \text{ the larger its prior variance,} \\[-0.2em]
-&\color{navyblue}\text{and hence the smaller the influence of the prior mean (and} \\[-0.2em]
+&\color{navyblue}\text{and hence the smaller the influence of the prior mean $f_0$ (and} \\[-0.2em]
 &\color{navyblue}\text{vice versa).}
 \end{split}
 \end{empheq}
@@ -271,9 +271,48 @@ where $f_{new} = f(x_{new})$.
 
 ### Posterior regression function
 
-::: {.lemma}
+\vspace{-0.8em}
+
+::: {.columns}
+
+::: {.column width=48%}
+\small
+Denote by
+
+- $\mathbf y = (y_1,\dots,y_n)^\top$
+- $\mathbf f = \big(f(x_1),\dots,f(x_n)\big)^\top$
+- $\mathbf f_0 = \big(f_0(x_1),\dots,f_0(x_n)\big)^\top$
+<!-- - $\mathbf w = (w_1,\dots,w_n)^\top$ -->
+- $\mathbf H = \big(h(x_i,x_j)\big)_{i,j=1}^n \in \bbR^{n\times n}$
 
 :::
+
+::: {.column width=48%}
+\small
+\eqref{mod1} + an I-prior on $f$ implies
+\begin{align*}
+\mathbf y\mid\mathbf f &\sim \N_n(\mathbf f,  \boldsymbol\Psi^{-1}) \\
+\mathbf f &\sim \N_n(\mathbf f_0, \mathbf H \bPsi \mathbf H) 
+\end{align*}
+<!-- Thus, $\mathbf y \sim \N_n(\mathbf f_0, \myoverbrace{\mathbf H \bPsi \mathbf H + \bPsi^{-1}}{\vspace{-2em}\mathbf V_y})$. -->
+Thus, $\mathbf y \sim \N_n(\mathbf f_0, \mathbf V_y := \mathbf H \bPsi \mathbf H + \bPsi^{-1})$.
+:::
+
+:::
+
+::: {.lemma}
+The posterior distribution for $f$ 
+<!-- in \eqref{mod1} under an I-prior -->
+is Gaussian with mean and covariance kernel\vspace{-0.4em}
+\begin{gather*}
+\E\big(f(x) \mid \mathbf y \big) = f_0(x) + \sum_{i=1}^n h(x,x_i) \hat w_i \\
+\Cov\big( f(x), f(x') \mid \mathbf y \big) = \sum_{i=1}^n\sum_{j=1}^n (\mathbf V_y ^{-1})_{ij} h(x,x_i )h(x',x_j) \\[-1.8em]
+\end{gather*}
+where $\hat w_1, \dots \hat w_n$ are given by
+$\hat{\mathbf w} = \E\big(\mathbf w \mid \mathbf y \big) = \bPsi \mathbf H \mathbf V_y^{-1} (\mathbf y - \mathbf f_0)$.
+:::
+
+
 
 ### Illustration
 
