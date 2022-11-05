@@ -82,8 +82,9 @@ Further assumptions:
 
 3. Certain kernels also require tuning, e.g. the Hurst coefficient of the fBm or the lengthscale of the Gaussian. For now, assume fixed.
 
+## Estimation methods
 
-### Marginal likelihood
+### Direct optimisation of (marginal) log-likelihood
 
 The marginal log-likelihood of $(\lambda, \bPsi)$ is
 $$
