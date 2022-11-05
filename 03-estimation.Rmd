@@ -24,7 +24,7 @@ progressdots: true
 transitions: true
 handout: false
 bibliography: refs.bib
-refslide: true
+refslide: false
 aspectratio: 43
 editor_options: 
   markdown: 
@@ -61,75 +61,59 @@ solidpink <- "#8E3B46"
 
 # Estimation
 
-## Posterior regression function
-
-::: {.lemma}
-Under the normal model \eqref{mod1} subject to the I-prior
-:::
-
-## Parameters of the model
+## Hyperparameters of the model
 
 \vspace{-1.5em}
 
 \begin{equation}\label{mod2}
 \begin{gathered}
-y_i = f_0(x_i) + \lambda\sum_{j=1}^n h(x_i,x_j)w_j + \epsilon_i \\
+y_i = f_0(x_i) + \sum_{j=1}^n h_\lambda(x_i,x_j)w_j + \epsilon_i \\
 (\epsilon_1,\dots,\epsilon_n)^\top \sim \N_n(0, \bPsi^{-1}) \\
 (w_1,\dots,w_n)^\top \sim \N_n(0, \bPsi)
 \end{gathered}
 \end{equation}
 
-Further assumptions
+A number of hyperparameters remain undetermined. 
+Further assumptions:
 
-<!-- - Modelling using I-prior entails choosing appropriate kernels for the problem at hand. -->
+1. The error variance $\bPsi$ is known up to a low-dimensional parameter, e.g. $\bPsi = \psi \mathbf I_n$, $\psi >0$ (iid errors).
 
-1. The error variance $\Psi$ is known up to a low-dimensional parameter, e.g. $\bPsi = \psi \mathbf I_n$, $\psi >0$.
+2. Each RKHS $\cF$ is defined by the kernel $h_\lambda = \lambda \tilde h$, where $\lambda \in \bbR$ is a scale^[This necessitates the use of reproducing kernel Krein spaces.] parameter.
 
-2. Each RKHS $\cF$ of function is defined by the kernel $h_\lambda = \tilde h$, where $\lambda \in \bbR$ is a scale^[This necessitates the use of reproducing kernel Krein spaces.] parameter.
+3. Certain kernels also require tuning, e.g. the Hurst coefficient of the fBm or the lengthscale of the Gaussian. For now, assume fixed.
 
-3. Certain kernels also require parameters themselves, e.g. the Hurst coefficient of the fBm or the lengthscale of the Gaussian kernel.
-
-4. A prior mean function $f_0(x)$ may be set by the user.
 
 ### Marginal likelihood
+
+The marginal log-likelihood of $(\lambda, \bPsi)$ is
+$$
+L(\lambda, \bPsi \mid \mathbf y)  = \text{const.} - \frac{1}{2}\log|\mathbf V_y| - \frac{1}{2}(\mathbf y - \mathbf f_0)^\top \mathbf V_y^{-1} (\mathbf y - \mathbf f_0),
+$$
 
 ::: {.columns}
 
 ::: {.column width=48%}
-Denote by
-
-- $\mathbf y = (y_1,\dots,y_n)^\top$
-- $\mathbf f = \big(f(x_1),\dots,f(x_n)\big)^\top$
-- $\mathbf f_0 = \big(f_0(x_1),\dots,f_0(x_n)\big)^\top$
-- $\mathbf w = (w_1,\dots,w_n)^\top$
-- $\mathbf H_\lambda = \big(h_\lambda(x_i,x_j)\big)_{i,j=1}^n \in \bbR^{n\times n}$
-
+```{r marglik}
+knitr::include_graphics("figure/iprior_surface.pdf")
+```
 :::
 
 ::: {.column width=48%}
-\eqref{mod1} + an I-prior on $f$ implies
-\begin{align*}
-\mathbf y\mid\mathbf f &\sim \N_n(\mathbf f,  \boldsymbol\Psi^{-1}) \\
-\mathbf f &\sim \N_n(\mathbf f_0, \mathbf H_\lambda \bPsi \mathbf H_\lambda)
-\end{align*}
 
-Thus, $\mathbf y \sim \N_n(\mathbf f_0, \myunderbrace{\mathbf H_\lambda \bPsi \mathbf H_\lambda + \bPsi^{-1}}{\mathbf V_y})$.
-:::
-
-:::
-
-\vspace{0.5em}
-
-The marginal log-likelihood of $(\lambda, \bPsi)$ is
-$$
-L(\lambda, \bPsi \mid \mathbf y)  = \text{const.} - \frac{1}{2}\log|\mathbf V_y| - \frac{1}{2}(\mathbf y - \mathbf f_0)^\top \mathbf V_y (\mathbf y - \mathbf f_0),
-$$
+\vspace{2em}
 
 - Direct optimisation using e.g. conjugate gradients or Newton methods. 
 
-- Numerical stability issues (workaround: Cholesky or eigen decomp.).
+- Numerical stability issues--workaround: Cholesky or eigen decomposition.
 
 - Prone to local optima.
+
+- Possible to also optimise kernel hyperparameters.
+:::
+
+:::
+
+
 
 ### EM algorithm
 
@@ -142,46 +126,67 @@ in which the $\mathbf w$ are "missing".
 The full data log-likelihood is
 \begin{align*}
 L(\lambda, \bPsi \mid \mathbf y, \mathbf w)
-&= \log p(\mathbf y\mid\mathbf w,\lambda,\bPsi) + \log p(\mathbf w | \bPsi) \\
+%&= \log p(\mathbf y\mid\mathbf w,\lambda,\bPsi) + \log p(\mathbf w \mid \bPsi) \\
 &= \text{const.} 
 - \frac{1}{2}(\mathbf y - \mathbf f_0)^\top \bPsi (\mathbf y - \mathbf f_0) 
 - \frac{1}{2}\operatorname{tr}\left(\mathbf V_y \mathbf w \mathbf w^\top \right) \\
 &\hspace{2em}+ (\mathbf y - \mathbf f_0)^\top \bPsi \mathbf H_\lambda \mathbf w
 \end{align*}
 
-Choose starting values $\lambda^{(0)}$ and $\bPsi^{(0)}$.
 The E-step entails computing 
 $$
-Q(\lambda,\bPsi) = \E \left\{ L(\lambda, \bPsi \mid \mathbf y, \mathbf w) \ \Big| \ \mathbf y, \lambda^{(t)},\bPsi^{(t)} \right\}
+Q_t(\lambda,\bPsi) = \E \left\{ L(\lambda, \bPsi \mid \mathbf y, \mathbf w) \ \Big| \ \mathbf y, \lambda^{(t)},\bPsi^{(t)} \right\}
+$$
+in which the following posterior quantities are needed
+$$
+\hat{\mathbf w} := \E(\mathbf w \mid \mathbf y, \lambda,\bPsi) \hspace{1.5em}\text{and}\hspace{1.5em} \hat{\mathbf W} := \E(\mathbf w\mathbf w^\top  \mid \mathbf y, \lambda,\bPsi) = \mathbf V_y^{-1} + \hat{\mathbf w}\hat{\mathbf w}^\top,
 $$
 
 ### EM algorithm (cont.)
 
-The following quantities are needed and are easily obtained:
-$$
-\tilde{\mathbf w} := \E(\mathbf w \mid \mathbf y, \lambda,\bPsi ) \hspace{2em}\text{and}\hspace{2em} \tilde{\mathbf W} := \E(\mathbf w\mathbf w^\top  \mid \mathbf y, \lambda,\bPsi ) = \tilde{\mathbf V_w} + \tilde{\mathbf w}\tilde{\mathbf w}^\top
-$$
+<!-- Choose starting values $\lambda^{(0)}$ and $\bPsi^{(0)}$. -->
 
-Supposing $\bPsi$ but not $\mathbf H_\lambda$ depends on $\psi$; and $\mathbf H_\lambda$ depends on $\lambda$ but not $\psi$, the M-step entails solving the following equations set to zero:
+
+<!-- Supposing $\bPsi$ but not $\mathbf H_\lambda$ depends on $\psi$; and $\mathbf H_\lambda$ depends on $\lambda$ but not $\psi$, the M-step entails solving the following equations set to zero: -->
+
+Let $\tilde{\mathbf w}^{(t)}$and $\tilde{\mathbf W}^{(t)}$ be versions of $\hat w$ and $\hat W$ computed using $\lambda^{(t)}$ and $\bPsi^{(t)}$.
+The M-step entails solving
+
 \begin{align*}
-\frac{\partial Q}{\partial \lambda} 
+\frac{\partial Q_t}{\partial \lambda} 
 &= -\frac{1}{2}\operatorname{tr}\left( \frac{\partial \mathbf V_y}{\partial \lambda}  \tilde{\mathbf W}^{(t)} \right) 
-+ (\mathbf y - \mathbf f_0)^\top \bPsi \frac{\partial \mathbf H_\lambda}{\partial \lambda} \tilde{\mathbf w}^{(t)} \\
-\frac{\partial Q}{\partial \psi} 
++ (\mathbf y - \mathbf f_0)^\top \bPsi \frac{\partial \mathbf H_\lambda}{\partial \lambda} \tilde{\mathbf w}^{(t)} 
+&=0 \\
+\frac{\partial Q_t}{\partial \psi} 
 &=
 -\frac{1}{2} \operatorname{tr}\left( \frac{\partial \mathbf V_y}{\partial \psi} \tilde{\mathbf W}^{(t)} \right)
 -\frac{1}{2}(\mathbf y - \mathbf f_0)^\top \left( \mathbf y - \mathbf f_0 -2 \mathbf H_\lambda \tilde{\mathbf w}^{(t)} \right)
+&=0
 \end{align*}
 
-- This scheme admits a closed-form solution for $\psi$ and (sometimes) for $\lambda$ too (e.g. linear addition of kernels $h_\lambda=\lambda_1 h_1 + \cdots + \lambda_p h_p$)
+\vspace{1em}
+
+- This scheme admits a closed-form solution for $\psi$ and (sometimes) for $\lambda$ too (e.g. linear addition of kernels $h_\lambda=\lambda_1 h_1 + \cdots + \lambda_p h_p$).
 
 - Sequential updating $\lambda^{(t)} \rightarrow \bPsi^{(t+1)}\rightarrow\lambda^{(t+1)} \rightarrow \cdots$ (expectation conditional maximisation, \cite{meng1993maximum}).
 
-# Examples
+- Computationally unattractive for optimising kernel hyperparameters.
 
-# Further research
+## Computational bottleneck
 
-Hello
+In either estimation method, $V_y^{-1}$ is computed and takes $O(n^3)$ time; storage requirements is $O(n^2)$. 
+
+\vspace{1em}
+
+Trick: low-rank matrix approximations.
+Suppose $H\approx QQ^\top$, where $Q \in \bbR^{n\times m}$ where $m \ll n$.
+Then, using the Woodbury matrix identity,
+$$
+V_y^{-1} = (H\Psi H + \Psi^{-1})^{-1} \approx \Psi - \Psi Q\big((Q^\top \Psi Q)^{-1} + Q^\top\Psi Q\big)^{-1} Q^\top \Psi
+$$
+is a much cheaper $O(nm^2)$ operation.
+
+
 
 
 
