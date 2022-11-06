@@ -18,6 +18,7 @@ output:
     #   after_body: afterbody.txt
 toc: true
 toctitle: "Overview"
+tocmulticol: 2
 banner: true
 logo: true
 progressdots: true
@@ -58,33 +59,10 @@ navyblue <- "#002f5c"
 solidpink <- "#8E3B46"
 ```
 
+
 # Introduction
-<!-- ### Abstract -->
 
-<!-- Regression analysis is undoubtedly an important tool to understand the relationship between one or more explanatory and independent variables of interest.  -->
-<!-- The problem of estimating a generic regression function in a model with normal errors is considered. -->
-<!-- For this purpose, a novel objective prior for the regression function is proposed, defined as the distribution maximizing entropy (subject to a suitable constraint) based on the Fisher information on the regression function. -->
-<!-- This prior is called the I-prior. -->
-<!-- The regression function is then estimated by its posterior mean under the I-prior, and accompanying hyperparameters are estimated via maximum marginal likelihood.  -->
-<!-- Estimation of I-prior models is simple and inference straightforward, while predictive performances are comparative, and often better, to similar leading state-of-the-art models--as will be illustrated by several data examples. -->
-<!-- Further plans for research in this area are also presented, including variable selection for interaction effects and extending the I-prior methodology to non-Gaussian errors. -->
-<!-- Please visit the project website for further details: https://phd.haziqj.ml/ -->
-
-<!-- \vspace{1em} -->
-<!-- Keywords: Bayes, Fisher information, RKHS, Gaussian process, EM algorithm -->
-
-<!-- ### Plan -->
-
-<!-- - Introduction -->
-<!-- - Some basic functional analysis (?) -->
-<!-- - The I-prior  -->
-<!-- - Estimation -->
-<!-- - Inference -->
-<!-- - Examples -->
-<!-- - Further work (variable selection, interaction effects, non-gaussian errors) -->
-
-
-
+## Regression analysis
 
 For $i=1,\dots,n$, consider the regression model
 
@@ -108,18 +86,16 @@ This forms the basis for a multitude of statistical models:
 
 4. Functional regression when $\cX$ is functional.
 
-
-
 ::: {.block}
 #### Goal
 To estimate the regression function $f$ given the observations $\{(y_i,x_i)\}_{i=1}^n$.
 :::
 
-### Ordinary linear regression
+### 1. Ordinary linear regression
 
 Suppose $f(x_i) = x_i^\top \beta$ for $i=1,\dots,n$, where $x_i,\beta \in \bbR^p$.
 
-\vspace{1em}
+\vspace{0.5em}
 
 ```{r linear-reg}
 set.seed(211022)
@@ -139,10 +115,11 @@ dat <- tibble(
 
 ggplot(dat, aes(x, y)) +
   geom_point() +
-  geom_smooth(method = "lm", se = FALSE, col = "navyblue")
+  geom_smooth(method = "lm", se = FALSE, col = navyblue) +
+  labs(x = expression(italic(x)), y = expression(italic(y)))
 ```
 
-### Varying intercepts/slopes model
+### 2. Varying intercepts/slopes model
 
 Suppose each unit $i=1,\dots,n$ relates to the $k$th observation in group $j\in\{1,\dots,m\}$.
 Model the function $f$ additively:
@@ -165,40 +142,42 @@ $$
 
 ::: {.onlyenv latex=<1>}
 
-```{r var-int-slope1, fig.height = 2.8}
+```{r var-int-slope1, fig.height = 2.7}
 ggplot(dat, aes(x, y, col = grp)) +
   geom_point() +
-  # geom_smooth(method = "lm", se = FALSE) +
   guides(col = "none") +
-  scale_color_viridis_d()
+  scale_color_viridis_d() +
+  labs(x = expression(italic(x)), y = expression(italic(y)))
 ```
 
 :::
 
 ::: {.onlyenv latex=<2>}
 
-```{r var-int-slope2, fig.height = 2.8}
+```{r var-int-slope2, fig.height = 2.7}
 ggplot(dat, aes(x, y, col = grp)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   guides(col = "none") +
-  scale_color_viridis_d()
+  scale_color_viridis_d() +
+  labs(x = expression(italic(x)), y = expression(italic(y)))
 ```
 
 :::
 
-### Smoothing models
+### 3. Smoothing models
 
 Suppose $f\in\cF$ where $\cF$ is a space of "smoothing functions" (models like LOESS, kernel regression, smoothing splines, etc.).
 
-```{r smooth1, fig.height = 2.8}
+```{r smooth1, fig.height = 3.1}
 dat <- iprior::gen_smooth() %>% rename(x = X)
 ggplot(dat, aes(x, y)) +
   geom_point() +
-  geom_smooth(se = FALSE, col = "navyblue")
+  geom_smooth(se = FALSE, col = navyblue) +
+  labs(x = expression(italic(x)), y = expression(italic(y)))
 ```
 
-### Functional regression
+### 4. Functional regression
 
 Suppose the input set $\cX$ is functional.
 The (linear) regression aims to estimate a coefficient function $\beta:\cT\to\bbR$
@@ -236,39 +215,40 @@ p2 <- dat %>%
 cowplot::plot_grid(p1, p2, rel_widths = c(1, 3), labels = c("y", "x"))
 ```
 
+## I-priors
+
 ### The I-prior
 
-For the regression model stated in \eqref{mod1}, we assume that $f$ lies in some RKHS of functions $\cF$, with reproducing kernel $h$ over $\cX$.
+For the normal model stated in \eqref{mod1}, we assume that $f$ lies in some RKHS of functions $\cF$, with reproducing kernel $h$ over $\cX$.
 
 ::: {.definition name="I-prior"}
 \label{def:iprior}
-The entropy maximising prior distribution for $f$, subject to constraints, is \vspace{-0.7em}
+With $f_0 \in \cF$ a prior guess, the entropy maximising prior distribution for $f$, subject to constraints, is \vspace{-1em}
 \begin{equation}
 \begin{gathered}\label{iprior}
-f(x) = \sum_{i=1}^n h(x,x_i)w_i \\
+f(x) = f_0(x) + \sum_{i=1}^n h(x,x_i)w_i \\
 (w_1,\dots,w_n)^\top \sim \N_n(0, \Psi) \vspace{-0.7em}
 \end{gathered}
 \end{equation}
 :::
 
-Therefore, the covariance kernel of $f(x)$ is determined by the function \vspace{-0.4em}
-$$
+Therefore, the covariance kernel of $f(x)$ is determined by the function 
+\begin{equation}
+\label{eq:ipriorcovfn}
 k(x,x') = \sum_{i=1}^n\sum_{j=1}^n \Psi_{ij} h(x,x_i )h(x',x_j),
-$$
-which happens to be **Fisher information** between two linear forms of $f$.
+\end{equation}
+which happens to be the *\textcolor{navyblue}{Fisher information}* between evaluations of $f$.
 
 ### The I-prior (cont.)
 
 Interpretation:
-
-<!-- > The more information about $f$, the larger its prior variance, and hence the smaller the influence of the prior mean (and vice versa). -->
 
 \vspace{-1em}
 
 \begin{empheq}[box=\tcbhighmath]{align*}
 \begin{split}
 &\color{navyblue}\text{The more information about } f, \text{ the larger its prior variance,} \\[-0.2em]
-&\color{navyblue}\text{and hence the smaller the influence of the prior mean (and} \\[-0.2em]
+&\color{navyblue}\text{and hence the smaller the influence of the prior mean $f_0$ (and} \\[-0.2em]
 &\color{navyblue}\text{vice versa).}
 \end{split}
 \end{empheq}
@@ -281,142 +261,222 @@ Of interest then are
 
 1. Posterior distribution for the regression function,
 $$
-p\big(f \,|\, y\big) =
-\frac{p(y \,|\, f)p(f)}
-{\int p( y \,|\, f)p( f) \dint  f}.
+p\big(f \mid y\big) =
+\frac{p(y \mid f)p(f)}
+{\int p( y \mid f) p(f) \dint  f}.
 $$
 
 
-2. Posterior predictive distribution (given a new data point $x_{new}$)
+2. Posterior predictive distribution (given a new data point $x_{*}$)
 $$
-p(y_{new} \,|\, \mathbf y) = \int p( y_{new} \,|\, f_{new}) p( f_{new} \,|\, \mathbf y) \dint f_{new},
+p(y_{*} \mid  y) = \int p( y_{*} \mid f_{*}) p( f_{*} \mid y) \dint f_{*},
 $$
-where $f_{new} = f(x_{new})$.
+where $f_{*} = f(x_{*})$.
 
-### Introduction (cont.)
+### Posterior regression function
+
+\vspace{-0.8em}
+
+::: {.columns}
+
+::: {.column width=48%}
+\small
+Denote by
+
+- $\mathbf y = (y_1,\dots,y_n)^\top$
+- $\mathbf f = \big(f(x_1),\dots,f(x_n)\big)^\top$
+- $\mathbf f_0 = \big(f_0(x_1),\dots,f_0(x_n)\big)^\top$
+- $\mathbf H = \big(h(x_i,x_j)\big)_{i,j=1}^n \in \bbR^{n\times n}$
+
+:::
+
+::: {.column width=48%}
+\small
+\eqref{mod1} + an I-prior on $f$ implies
+\begin{align*}
+\mathbf y\mid\mathbf f &\sim \N_n(\mathbf f,  \boldsymbol\Psi^{-1}) \\
+\mathbf f &\sim \N_n(\mathbf f_0, \mathbf H \bPsi \mathbf H) 
+\end{align*}
+Thus, $\mathbf y \sim \N_n(\mathbf f_0, \mathbf V_y := \mathbf H \bPsi \mathbf H + \bPsi^{-1})$.
+:::
+
+:::
+
+::: {.lemma}
+The posterior distribution for $f$ is Gaussian with mean and covariance \vspace{-0.4em}
+\begin{gather}
+\E\big(f(x) \mid \mathbf y \big) = f_0(x) + \sum_{i=1}^n h(x,x_i) \hat w_i \\
+\Cov\big( f(x), f(x') \mid \mathbf y \big) = \sum_{i=1}^n\sum_{j=1}^n \big(\mathbf V_y ^{-1}\big)_{ij} h(x,x_i )h(x',x_j) \\[-1.8em]
+\nonumber
+\end{gather}
+where $\hat w_1, \dots, \hat w_n$ are given by
+$\hat{\mathbf w} := \E\big(\mathbf w \mid \mathbf y \big) = \bPsi \mathbf H \mathbf V_y^{-1} (\mathbf y - \mathbf f_0)$.
+:::
+
+
+
+### Illustration
+
+::: {.onlyenv latex=<1>}
 
 Observations $\{(y_i,x_i) \mid y_i,x_i\in\bbR \ \forall i=1,\dots,n\}$.
 
-\vspace{1em }
-
-```{r datapoints, cache = TRUE}
+```{r datapoints, fig.height = 3.3}
 set.seed(197)
 dat <- gen_smooth() %>% rename(x = X)
 ggplot(dat, aes(x, y)) +
   geom_point() +
   theme_classic() +
-  coord_cartesian(ylim = c(min(dat$y), max(dat$y)))
+  coord_cartesian(ylim = c(min(dat$y), max(dat$y)),
+                  xlim = c(min(dat$x), max(dat$x))) +
+  labs(x = expression(italic(x)), y = expression(italic(y)))
 ```
 
-### Introduction (cont.)
+:::
+
+::: {.onlyenv latex=<2>}
 
 Choose $h(x,x') = e^{-\frac{\lVert x - x' \rVert^2}{2s^2}}$ (Gaussian kernel).
 Sample paths from I-prior:
 
-\vspace{0.5em}
-
-```{r priorsamp, cache = TRUE}
+```{r priorsamp, fig.height = 3.3}
 mod <- iprior(y ~ x, dat, kernel = "se", control = list(silent = TRUE))
-n <- nrow(dat)
-prior.samp <- dat[, -1, drop = FALSE]
-H <- kern_se(dat$x)
 psi <- get_psi(mod)
 lambda <- get_lambda(mod)
-for (i in 1:100) {
-  w <- rnorm(n, mean = 0, sd = sqrt(psi))
-  prior.samp <- cbind(prior.samp, mean(dat$y) +
-                        as.numeric(lambda * H %*% w / 2))
+
+N <- 150
+B <- 100
+prior.samp <- tibble(x = seq(min(dat$x) - 1, max(dat$x) + 1, length = N))
+H <- kern_se(prior.samp$x)
+for (i in 1:B) {
+  w <- rnorm(N, mean = 0, sd = sqrt(psi))
+  prior.samp <- cbind(prior.samp, mean(dat$y) + 
+                        as.numeric(lambda * H %*% w))
 }
-colnames(prior.samp) <- c("x", paste0("y", 1:100))
+colnames(prior.samp) <- c("x", paste0("y", 1:B))
 prior.samp <- reshape2::melt(prior.samp, id = "x")
+
 ggplot(dat, aes(x, y)) +
   geom_point() +
   geom_line(data = prior.samp, aes(x, value, group = variable),
-            size = 0.2, alpha = 0.4, col = "gray50") +
+            linewidth = 0.2, alpha = 0.4, col = "gray50") +
   theme_classic() +
-  coord_cartesian(ylim = c(min(dat$y), max(dat$y)))
+  coord_cartesian(ylim = c(min(dat$y), max(dat$y)),
+                  xlim = c(min(dat$x), max(dat$x))) +
+  labs(x = expression(italic(x)), y = expression(italic(y)))
 ```
 
-### Introduction (cont.)
+:::
+
+::: {.onlyenv latex=<3>}
 
 Sample paths from the posterior of $f$:
 
-\vspace{1em}
-
-```{r postsamp, cache = TRUE}
-post.samp <- dat[, -1, drop = FALSE]
+```{r postsamp, fig.height = 3.3}
+H <- kern_se(dat$x)
+n <- nrow(H)
 Vy <- (H * lambda) %*% (H * lambda) + diag(1/psi, n)
 w <- mvtnorm::rmvnorm(100, mean = mod$w, sigma = solve(Vy))
-for (i in 1:100) {
-  post.samp <- cbind(post.samp, mean(dat$y) + as.numeric(lambda * H %*% w[i, ]))
+
+post.samp <- tibble(x = seq(min(dat$x) - 1, max(dat$x) + 1, length = N))
+h <- kern_se(dat$x, post.samp$x)
+
+for (i in 1:B) {
+  post.samp <- cbind(post.samp, mean(dat$y) + 
+                       as.numeric(lambda * h %*% w[i, ]))
 }
-colnames(post.samp) <- c("x", paste0("y", 1:100))
+colnames(post.samp) <- c("x", paste0("y", 1:B))
 post.samp <- reshape2::melt(post.samp, id = "x")
+
 ggplot(dat, aes(x, y)) +
   geom_point() +
   geom_line(data = post.samp, aes(x, value, group = variable),
-            size = 0.2, alpha = 0.4, col = "gray50") +
+            linewidth = 0.2, alpha = 0.4, col = "gray50") +
   theme_classic() +
-  coord_cartesian(ylim = c(min(dat$y), max(dat$y)))
+  coord_cartesian(ylim = c(min(dat$y), max(dat$y)),
+                  xlim = c(min(dat$x), max(dat$x))) +
+  labs(x = expression(italic(x)), y = expression(italic(y)))
 ```
 
-### Introduction (cont.)
+:::
 
-Posterior mean estimate for $y=f(x)$ and its 95% credibility interval.
+::: {.onlyenv latex=<4>}
 
-\vspace{1em}
+Posterior mean estimate for $y=f(x)$ and its 95% credibility interval:
 
-```{r ipriorplot, cache = TRUE}
-plot_fitted_navyblue <- function (x, X.var = 1, cred.bands = TRUE, size = 1,
-                                  linetype = "solid")
-{
-    fit <- fitted(x, intervals = cred.bands)
-    y.hat <- fit$y
-    X <- x$ipriorKernel$Xl[[X.var]]
-    if (!is.null(dim(X))) {
-        if (ncol(X) > 1)
-            X <- X[, X.var]
-    }
-    plot.df <- data.frame(y.hat = y.hat, x = X, y = get_y(x))
-    x.lab <- x$ipriorKernel$xname[X.var]
-    y.lab <- x$ipriorKernel$yname
-    nys.check <- iprior:::is.ipriorKernel_nys(x$ipriorKernel)
-    p <- ggplot(plot.df)
-    if (isTRUE(cred.bands)) {
-        p <- p + geom_ribbon(aes(x = X, ymin = fit$lower, ymax = fit$upper),
-            fill = "grey", alpha = 0.5)
-    }
-    if (isTRUE(nys.check)) {
-        p <- p + geom_point(aes(x, y), alpha = 0.15) + geom_point(data = plot.df[seq_len(x$ipriorKernel$nystroml$nys.size),
-            ], aes(x, y), size = 2, shape = 1, stroke = 1)
-    }
-    else {
-        p <- p + geom_point(aes(x, y))
-    }
-    p + geom_line(aes(x, y.hat), col = navyblue, size = size, linetype = linetype) +
-        labs(x = x.lab, y = y.lab) + theme_bw()
-}
+```{r postcredint, fig.height = 3.3}
+df_pred <- tibble(x = seq(min(dat$x) - 1, max(dat$x) + 1, length = N))
+# df_pred <- tibble(x = dat$x)
+tmp <- predict(mod, df_pred) 
+Vynew <- (h * lambda) %*% solve(Vy, h * lambda) + diag(1 / psi, N)
 
-plot_fitted_navyblue(mod) +
+df_pred <- 
+  df_pred %>%
+  mutate(y = tmp$y, 
+         lower = y + qnorm(0.025) * sqrt(diag(Vynew)), 
+         upper = y + qnorm(0.975) * sqrt(diag(Vynew)))
+
+ggplot(df_pred, aes(x, y)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = navyblue, alpha = 0.25) +
+  geom_point(data = dat, aes(x, y)) +
+  geom_line(col = navyblue, linewidth = 1) +
   theme_classic() +
-  coord_cartesian(ylim = c(min(dat$y), max(dat$y)))
+  coord_cartesian(ylim = c(min(dat$y), max(dat$y)),
+                  xlim = c(min(dat$x), max(dat$x))) +
+  labs(x = expression(italic(x)), y = expression(italic(y)))
 ```
+
+:::
+
+
+::: {.onlyenv latex=<5>}
+
+Other Bayesian stuff e.g. posterior predictive checks for $\{y_1,\dots,y_n\}$:
+
+```{r ppc, fig.height = 3.3}
+no.of.draws <- 100
+Vy <- (H * lambda) %*% (H * lambda) + diag(1/psi, nrow(H))
+VarY.hat <- (H * lambda) %*% solve(Vy, H * lambda) + diag(1 / psi, nrow(Vy))
+y_fitted <- fitted(mod)$y
+ppc <- t(mvtnorm::rmvnorm(no.of.draws, mean = y_fitted, sigma = VarY.hat))
+melted.ppc <- reshape2::melt(data.frame(x = dat$x, ppc = ppc), id.vars = "x")
+melted.ppc <- cbind(melted.ppc, type = "Posterior predictive check")
+
+ggplot() +
+  scale_x_continuous(breaks = NULL, name = expression(italic(y))) +
+  scale_y_continuous(breaks = NULL, name = "Density") +
+  geom_line(data = melted.ppc,
+            aes(x = value, group = variable, col = "yrep", size = "yrep"),
+            stat = "density", alpha = 0.5) +
+  geom_line(data = dat, aes(x = y, col = "y", size = "y"), stat = "density") +
+  scale_colour_manual(
+    name = NULL, labels = c("Observed", "Replications"),
+    values = c("grey10", "steelblue4")
+  ) +
+  scale_size_manual(
+    name = NULL, labels = c("Observed", "Replications"),
+    values = c(1.5, 0.19)
+  ) +
+  theme_classic() +
+  theme(legend.position = c(0.9, 0.5))
+```
+
+:::
 
 ### Why I-priors?
-
 
 ::: {.columns}
 
 ::: {.column width=48%}
 
 
-Advantages
+Highlights
 
-- Provides a unifying methodology for regression.
+- An objective, data-driven prior. No user input required.
 
-- Simple and parsimonious model specification and estimation.
+- The I-prior is proper; posterior estimates are thus *admissible*.
 
-- Often yield comparable (or better) predictions than competing ML algorithms.
+- Intuitive regression approach-- model purpose is effected by kernel choices.
 
 :::
 
@@ -438,7 +498,7 @@ $$
 \hat f = \argmin_f \sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \int f''(x)^2 \dint x
 $$
 
-- Gaussian process regression
+- Gaussian process regression \citep{rasmussen2006gaussian}
 
 ### State of the art
 
@@ -477,56 +537,42 @@ Professor Wicher Bergsma
 
 6. \fullcite{jamil_bergsma_2022}
 
+
 # Regression using I-priors
 
 ## Reproducing kernel Hilbert spaces
 
-> Assumption: Let $f \in \cF$ be an RKHS with kernel $h$ over a set $\cX$.
+> Assumption: $f \in \cF$ where $\cF$ is an RKHS with kernel $h$ over $\cX$.
 
 ::: {.definition name="Hilbert spaces"}
-A *Hilbert space* $\cF$ is a vector space equipped with a positive semidefinite inner product $\langle\cdot,\cdot\rangle_\cF : \cF \times \cF \to \bbR$.
+A *Hilbert space* $\cF$ is a vector space equipped with a positive definite inner product $\langle\cdot,\cdot\rangle_\cF : \cF \times \cF \to \bbR$.
 :::
 
-<!-- ::: {.definition name="Kernels"} -->
-<!-- A function $h:\cX \times \cX \to \bbR$ is called a *kernel* if $\exists \cF$ and  $\phi:\cX\to\cF$ such that $\forall x,x' \in \cX$, -->
-<!-- $h(x,x') = \langle \phi(x), \phi(x') \rangle$. -->
-<!-- ::: -->
 
 ::: {.definition name="Reproducing kernels"}
-A symmetric, bivariate function $h:\cX \times \cX \to \bbR$ is called a *kernel*, and it is a *reproducing kernel* of $\cF$ if $h$ satisfies $\forall x \in \cX$,
+A symmetric, bivariate function $h:\cX \times \cX \to \bbR$ is called a *kernel*, and it is a *reproducing kernel* of $\cF$ if $h$ satisfies
 
-i. $h(\cdot,x) \in \cF$; and
-ii. $\langle f, h(\cdot, x) \rangle_\cF = f(x)$, $\forall f \in \cF$.
+i. $\forall x \in \cX$, $h(\cdot,x) \in \cF$;
+ii. $\forall x \in \cX$ and $\forall f \in \cF$, $\langle f, h(\cdot, x) \rangle_\cF = f(x)$.
 
 In particular, $\forall x,x'\in\cF$,
 $h(x,x') = \langle h(\cdot, x), h(\cdot, x') \rangle_\cF$.
 :::
 
-<!-- ### Reproducing kernel Hilbert spaces (cont.) -->
-
-<!-- - In ML literature, Mercer's Theorem states -->
-<!-- $$ -->
-<!-- h(x,x') = \langle \phi(x), \phi(x') \rangle_\cV \hspace{1em}\Leftrightarrow\hspace{1em} h \text{ is semi p.d.} -->
-<!-- $$ -->
-<!-- where $\phi: \cX \to \cV$ is a mapping from $\cX$ to the *feature space* $\cV$. -->
-
-<!-- - In many ML models, need not specify $\phi$ explicitly; computation is made simpler by the use of kernels. -->
-
-<!-- ```{r featuremap, out.width = "60%"} -->
-<!-- knitr::include_graphics("figure/featuremap.png") -->
-<!-- ``` -->
 
 
 ### Reproducing kernel Hilbert spaces (cont.)
 
-::: {.theorem}
+\vspace{-0.5em}
+
+::: {.theorem name="Moore-Aronszajn, etc."}
 There is a bijection between
 
-i. the set of positive semidefinite functions; and
+i. the set of positive definite functions; and
 ii. the set of RKHSs.
 :::
 
-```{r rkhss, fig.height = 3, fig.width = 7}
+```{r rkhss, include = FALSE}
 psi <- 1
 lambda <-  1
 N <- 100
@@ -550,37 +596,50 @@ my_y <- function(k = "linear", seed = 31122) {
   return(res)
 }
 
-prior.samp <- bind_rows(
-  my_y("linear"),
-  my_y("fbm"),
-  my_y("se"),
-  my_y("constant")
-) %>% suppressMessages()
-
-prior.samp <- reshape2::melt(prior.samp, id = c("x", "kernel"))
-prior.samp$kernel <- factor(prior.samp$kernel,
-                            levels = c("constant", "linear", "fbm", "se"))
-levels(prior.samp$kernel) <- c("Constant", "Linear",
-                               "Fractional Brownian motion",
-                               "Gaussian")
-
-ggplot(prior.samp, aes(x, value, group = variable, col = variable)) +
-  geom_line() +
-  facet_wrap(. ~ kernel, ncol = 2, scales = "free") +
-  scale_colour_viridis_d() +
-  theme_classic() +
-  theme(axis.ticks = element_blank(), axis.text = element_blank()) +
-  guides(col = "none") +
-  labs(y = "y")
+plot_fun <- function(kk = "linear") {
+  prior.samp <- my_y(kk) %>% suppressMessages()
+  prior.samp <- reshape2::melt(prior.samp, id = c("x", "kernel"))
+  
+  ggplot(prior.samp, aes(x, value, group = variable, col = variable)) +
+    geom_line() +
+    scale_colour_viridis_d() +
+    theme_void() +
+    theme(panel.border = element_rect(fill = NA)) +
+    guides(col = "none") +
+    labs(y = "y")
+}
 ```
 
-<!-- ::: {.corollary} -->
-<!-- Any $f\in\cF$ can be approximated arbitrarily well by functions of the form -->
-<!-- $$ -->
-<!-- \tilde f(x) = \sum_{i=1}^n h(x,x_i) w_i -->
-<!-- $$ -->
-<!-- for some constants $w_1,\dots,w_n \in \bbR$, because $\cF$ is the completion of the vector space $\tilde \cF = \operatorname{span}\{ h(\cdot,x) \mid x \in \cX \}$ equipped with the squared norm $\lVert \tilde f \rVert^2 = \sum_{i,j=1}^n w_iw_jh(x_i,x_j)$. -->
-<!-- ::: -->
+\vspace{-0.4em}
+
+::: {.columns}
+\small
+:::: {.column width=50%}
+$h(x,x') = 1$ (constant) \vspace{-1.8em}
+```{r rkhs_const, fig.height = 1, fig.width = 3.5}
+plot_fun("constant") +
+  coord_cartesian(ylim = c(-10, 10))
+```
+\vspace{-0.95em}
+$h(x,x') = -\frac{1}{2}(\lVert x-x'\rVert^{2\gamma}_{\cX}-\lVert x\rVert^{2\gamma}_{\cX}-\lVert x'\rVert^{2\gamma}_{\cX})$ (fBm)\vspace{-1.8em}
+```{r rkhs_fbm, fig.height = 1, fig.width = 3.5}
+plot_fun("fbm")
+```
+::::
+
+:::: {.column width=50%}
+$h(x,x') = \langle x, x' \rangle_{\cX}$ (linear) \vspace{-1.8em}
+```{r rkhs_linear, fig.height = 1, fig.width = 3.5}
+plot_fun("linear")
+```
+$h(x,x') = \exp\Big(-\frac{\lVert x-x'\rVert^{2\gamma}_{\cX}}{2s^2}\Big)$ (Gaussian)\vspace{-1.5em}
+```{r rkhs_se, fig.height = 1, fig.width = 3.5}
+plot_fun("se")
+```
+::::
+
+:::
+
 
 ### Building more complex RKHSs
 
@@ -590,11 +649,13 @@ We can build complex RKHSs by adding and multiplying kernels:
 
 - $\cF = \cF_1 \otimes \cF_2$ is an RKHS defined by $h = h_1h_2$.
 
+\vspace{0.5em}
+
 ::: {.example name="ANOVA RKHS"}
 Consider RKHSs $\cF_k$ with kernel $h_k$, $k=1,\dots,p$.
-The ANOVA kernel over the set $\cX = \cX_1 \times \cdots \times \cX_p$ defining the ANOVA RKHS $\cF$ is
+The ANOVA kernel over the set $\cX = \cX_1 \times \cdots \times \cX_p$ defining the ANOVA RKHS $\cF$ is \vspace{-0.2em}
 $$
-h(x,x') = \prod_{k=1}^p \big(1 + h_k(x,x')\big).
+h(x,x') = \prod_{k=1}^p \big(1 + h_k(x,x')\big).\vspace{-0.1em}
 $$
 For $p=2$ let $\cF_k$ be linear RKHS of functions over $\bbR$.
 Then $f \in \cF$ where $\cF=\cF_\emptyset \oplus \cF_1 \oplus \cF_2 \oplus \cF_1\otimes\cF_2$ are of the form
@@ -606,14 +667,14 @@ $$
 
 ## The Fisher information
 
-For the regression model \eqref{mod1},
-the log-likelihood of $f$ is given by
+For the normal model \eqref{mod1}, the log-likelihood of $f$ is given by
 $$
 \ell(f|y) = \text{const.} - \frac{1}{2} \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}
 \big(y_i - \langle f, h(\cdot,x_i) \rangle_\cF \big)
 \big(y_j - \langle f, h(\cdot,x_j) \rangle_\cF \big)
 $$
 
+Variational calculus leads us to the following result:
 
 ::: {.lemma name="Fisher information for regression function"}
 The Fisher information for $f$ is
@@ -641,14 +702,14 @@ we have:
 &= \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}
 \left\langle h(\cdot,x) , h(\cdot,x_i) \right\rangle_{\cF}
 \left\langle h(\cdot,x') , h(\cdot,x_j) \right\rangle_{\cF} \nonumber \\
-&= \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}  h(x,x_i)h(x',x_j) =: k(x,x') \label{eq:fikern}
+&= \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}  h(x,x_i)h(x',x_j) =: k(x,x') \tag{from \ref{eq:ipriorcovfn}}
 \end{align}
 
 
 ## The I-prior
 
 ::: {.lemma}
-The kernel \eqref{eq:fikern} induces a finite-dimensional RKHS $\cF_n < \cF$, consisting of functions of the form $\tilde f(x) = \sum_{i=1}^n h(x,x_i)w_i$ (for some real-valued $w_i$s) equipped with the squared norm
+The kernel \eqref{eq:ipriorcovfn} induces a finite-dimensional RKHS $\cF_n < \cF$, consisting of functions of the form $\tilde f(x) = \sum_{i=1}^n h(x,x_i)w_i$ (for some real-valued $w_i$s) equipped with the squared norm
 $$
 \lVert \tilde f \rVert^2_{\cF_n} = \sum_{i,j=1}^n \psi^-_{ij}w_iw_j,
 $$
@@ -663,151 +724,376 @@ where $\psi^{-}_{ij}$ is the $(i,j)$th entry of $\Psi^{-1}$.
 ### The I-prior (cont.)
 
 ::: {.theorem name="I-prior"}
-Let $\nu$ be a volume measure induced by the norm above.
-The solution to
+Let $\nu$ be a volume measure induced by the norm above, and let
 $$
-\argmax_p \left\{ -\int_{\cF_n } p(f) \log p(f) \, \nu(\dint f) \right\}
+\tilde p = \argmax_p \left\{ -\int_{\cF_n } p(f) \log p(f) \, \nu(\dint f) \right\}
 $$
-subject to the constraint
+subject to the constraint 
 $$
-\E_{f \sim p} \lVert f \rVert^2_{\cF_n} = \text{constant}
-$$
-is the Gaussian distribution whose covariance function is $k(x,x')$.
+\E_{f \sim p} \lVert f -f_0 \rVert^2_{\cF_n} = \text{constant}, \hspace{2em} f_0\in\cF.
+$$ 
+Then $\tilde p$ is the Gaussian with mean $f_0$ and covariance function $k(x,x')$.
 :::
 
 Equivalently, under the I-prior, $f$ can be written in the form
 $$
-f(x) = \sum_{i=1}^n h(x,x_i)w_i, \hspace{2em} (w_1,\dots,w_n)^\top \sim \N(0,\Psi)
+f(x) = f_0(x) + \sum_{i=1}^n h(x,x_i)w_i, \hspace{2em} (w_1,\dots,w_n)^\top \sim \N(0,\Psi)
 $$
-
-
-
 
 
 # Estimation
 
-## Posterior regression function
-
-::: {.lemma}
-Under the normal model \eqref{mod1} subject to the I-prior, the posterior distribution of $f(x)$ is given by
-
-:::
-
-## Parameters of the model
+## Model hyperparameters
 
 \vspace{-1.5em}
 
 \begin{equation}\label{mod2}
 \begin{gathered}
-y_i = f_0(x_i) + \lambda\sum_{j=1}^n h(x_i,x_j)w_j + \epsilon_i \\
+y_i = f_0(x_i) + \sum_{j=1}^n h_\lambda(x_i,x_j)w_j + \epsilon_i \\
 (\epsilon_1,\dots,\epsilon_n)^\top \sim \N_n(0, \bPsi^{-1}) \\
 (w_1,\dots,w_n)^\top \sim \N_n(0, \bPsi)
 \end{gathered}
 \end{equation}
 
-Further assumptions
+A number of hyperparameters remain undetermined. 
+Further assumptions:
 
-<!-- - Modelling using I-prior entails choosing appropriate kernels for the problem at hand. -->
+1. The error variance $\bPsi$ is known up to a low-dimensional parameter, e.g. $\bPsi = \psi \mathbf I_n$, $\psi >0$ (iid errors).
 
-1. The error variance $\Psi$ is known up to a low-dimensional parameter, e.g. $\bPsi = \psi \mathbf I_n$, $\psi >0$.
+2. Each RKHS $\cF$ is defined by the kernel $h_\lambda = \lambda \tilde h$, where $\lambda \in \bbR$ is a scale^[This necessitates the use of reproducing kernel Krein spaces, as the kernels may no longer be positive definite.] parameter.
 
-2. Each RKHS $\cF$ of function is defined by the kernel $h_\lambda = \tilde h$, where $\lambda \in \bbR$ is a scale^[This necessitates the use of reproducing kernel Krein spaces.] parameter.
+3. Certain kernels also require tuning, e.g. the Hurst coefficient of the fBm or the lengthscale of the Gaussian. For now, assume fixed.
 
-3. Certain kernels also require parameters themselves, e.g. the Hurst coefficient of the fBm or the lengthscale of the Gaussian kernel.
+## Estimation methods
 
-4. A prior mean function $f_0(x)$ may be set by the user.
+### Direct optimisation of (marginal) log-likelihood
 
-### Marginal likelihood
+The marginal log-likelihood of $(\lambda, \bPsi)$ is
+$$
+\ell(\lambda, \bPsi \mid \mathbf y)  = \text{const.} - \frac{1}{2}\log|\mathbf V_y| - \frac{1}{2}(\mathbf y - \mathbf f_0)^\top \mathbf V_y^{-1} (\mathbf y - \mathbf f_0),
+$$
 
 ::: {.columns}
 
 ::: {.column width=48%}
-Denote by
-
-- $\mathbf y = (y_1,\dots,y_n)^\top$
-- $\mathbf f = \big(f(x_1),\dots,f(x_n)\big)^\top$
-- $\mathbf f_0 = \big(f_0(x_1),\dots,f_0(x_n)\big)^\top$
-- $\mathbf w = (w_1,\dots,w_n)^\top$
-- $\mathbf H_\lambda = \big(h_\lambda(x_i,x_j)\big)_{i,j=1}^n \in \bbR^{n\times n}$
-
+```{r marglik}
+knitr::include_graphics("figure/iprior_surface.pdf")
+```
 :::
 
 ::: {.column width=48%}
-\eqref{mod1} + an I-prior on $f$ implies
-\begin{align*}
-\mathbf y\mid\mathbf f &\sim \N_n(\mathbf f,  \boldsymbol\Psi^{-1}) \\
-\mathbf f &\sim \N_n(\mathbf f_0, \mathbf H_\lambda \bPsi \mathbf H_\lambda)
-\end{align*}
 
-Thus, $\mathbf y \sim \N_n(\mathbf f_0, \myunderbrace{\mathbf H_\lambda \bPsi \mathbf H_\lambda + \bPsi^{-1}}{\mathbf V_y})$.
-:::
-
-:::
-
-\vspace{0.5em}
-
-The marginal log-likelihood of $(\lambda, \bPsi)$ is
-$$
-L(\lambda, \bPsi \mid \mathbf y)  = \text{const.} - \frac{1}{2}\log|\mathbf V_y| - \frac{1}{2}(\mathbf y - \mathbf f_0)^\top \mathbf V_y (\mathbf y - \mathbf f_0),
-$$
+\vspace{2em}
 
 - Direct optimisation using e.g. conjugate gradients or Newton methods. 
 
-- Numerical stability issues (workaround: Cholesky or eigen decomp.).
+- Numerical stability issues--workaround: Cholesky or eigen decomposition.
 
 - Prone to local optima.
+
+- Possible to also optimise kernel hyperparameters.
+:::
+
+:::
 
 ### EM algorithm
 
 An alternative view of the model:
 \begin{align*}
-\mathbf y\mid\mathbf w &\sim \N_n(\mathbf f_0 + \mathbf H_\lambda w,  \boldsymbol\Psi^{-1}) \\
+\mathbf y\mid\mathbf w &\sim \N_n(\mathbf f_0 + \mathbf H_\lambda \mathbf w,  \boldsymbol\Psi^{-1}) \\
 \mathbf w &\sim \N_n(\mathbf 0, \bPsi )
 \end{align*}
 in which the $\mathbf w$ are "missing". 
 The full data log-likelihood is
 \begin{align*}
 L(\lambda, \bPsi \mid \mathbf y, \mathbf w)
-&= \log p(\mathbf y\mid\mathbf w,\lambda,\bPsi) + \log p(\mathbf w | \bPsi) \\
+%&= \log p(\mathbf y\mid\mathbf w,\lambda,\bPsi) + \log p(\mathbf w \mid \bPsi) \\
 &= \text{const.} 
 - \frac{1}{2}(\mathbf y - \mathbf f_0)^\top \bPsi (\mathbf y - \mathbf f_0) 
 - \frac{1}{2}\operatorname{tr}\left(\mathbf V_y \mathbf w \mathbf w^\top \right) \\
 &\hspace{2em}+ (\mathbf y - \mathbf f_0)^\top \bPsi \mathbf H_\lambda \mathbf w
 \end{align*}
 
-Choose starting values $\lambda^{(0)}$ and $\bPsi^{(0)}$.
 The E-step entails computing 
 $$
-Q(\lambda,\bPsi) = \E \left\{ L(\lambda, \bPsi \mid \mathbf y, \mathbf w) \ \Big| \ \mathbf y, \lambda^{(t)},\bPsi^{(t)} \right\}
+Q_t(\lambda,\bPsi) = \E \left\{ L(\lambda, \bPsi \mid \mathbf y, \mathbf w) \ \Big| \ \mathbf y, \lambda^{(t)},\bPsi^{(t)} \right\}
+$$
+in which the following posterior quantities are needed
+$$
+\hat{\mathbf w} := \E(\mathbf w \mid \mathbf y, \lambda,\bPsi) \hspace{1.5em}\text{and}\hspace{1.5em} \hat{\mathbf W} := \E(\mathbf w\mathbf w^\top  \mid \mathbf y, \lambda,\bPsi) = \mathbf V_y^{-1} + \hat{\mathbf w}\hat{\mathbf w}^\top.
 $$
 
 ### EM algorithm (cont.)
 
-The following quantities are needed and are easily obtained:
-$$
-\tilde{\mathbf w} := \E(\mathbf w \mid \mathbf y, \lambda,\bPsi ) \hspace{2em}\text{and}\hspace{2em} \tilde{\mathbf W} := \E(\mathbf w\mathbf w^\top  \mid \mathbf y, \lambda,\bPsi ) = \tilde{\mathbf V_w} + \tilde{\mathbf w}\tilde{\mathbf w}^\top
-$$
+Let $\tilde{\mathbf w}^{(t)}$and $\tilde{\mathbf W}^{(t)}$ be versions of $\hat{\mathbf w}$ and $\hat{\mathbf W}$ computed using $\lambda^{(t)}$ and $\bPsi^{(t)}$.
+The M-step entails solving
 
-Supposing $\bPsi$ but not $\mathbf H_\lambda$ depends on $\psi$; and $\mathbf H_\lambda$ depends on $\lambda$ but not $\psi$, the M-step entails solving the following equations set to zero:
 \begin{align*}
-\frac{\partial Q}{\partial \lambda} 
+\frac{\partial Q_t}{\partial \lambda} 
 &= -\frac{1}{2}\operatorname{tr}\left( \frac{\partial \mathbf V_y}{\partial \lambda}  \tilde{\mathbf W}^{(t)} \right) 
-+ (\mathbf y - \mathbf f_0)^\top \bPsi \frac{\partial \mathbf H_\lambda}{\partial \lambda} \tilde{\mathbf w}^{(t)} \\
-\frac{\partial Q}{\partial \psi} 
++ (\mathbf y - \mathbf f_0)^\top \bPsi \frac{\partial \mathbf H_\lambda}{\partial \lambda} \tilde{\mathbf w}^{(t)} 
+&=0 \\
+\frac{\partial Q_t}{\partial \psi} 
 &=
 -\frac{1}{2} \operatorname{tr}\left( \frac{\partial \mathbf V_y}{\partial \psi} \tilde{\mathbf W}^{(t)} \right)
 -\frac{1}{2}(\mathbf y - \mathbf f_0)^\top \left( \mathbf y - \mathbf f_0 -2 \mathbf H_\lambda \tilde{\mathbf w}^{(t)} \right)
+&=0
 \end{align*}
 
-- This scheme admits a closed-form solution for $\psi$ and (sometimes) for $\lambda$ too (e.g. linear addition of kernels $h_\lambda=\lambda_1 h_1 + \cdots + \lambda_p h_p$)
+\vspace{1em}
+
+- This scheme admits a closed-form solution for $\psi$ and (sometimes) for $\lambda$ too (e.g. linear addition of kernels $h_\lambda=\lambda_1 h_1 + \cdots + \lambda_p h_p$).
 
 - Sequential updating $\lambda^{(t)} \rightarrow \bPsi^{(t+1)}\rightarrow\lambda^{(t+1)} \rightarrow \cdots$ (expectation conditional maximisation, \cite{meng1993maximum}).
 
-# Examples
+- Computationally unattractive for optimising kernel hyperparameters.
 
-# Further research
+## Computational bottleneck
 
-Hello
+In either estimation method, $V_y^{-1}$ is computed and takes $O(n^3)$ time.
+
+\vspace{-0.2em}
+
+```{r nystrom, fig.height = 2.3, fig.width = 6.5}
+my_gen_smooth <- function(n = 150, xlim = c(0.2, 4.6), x.jitter = 0.65, 
+                          seed = NULL, truth = FALSE) {
+    if (!is.null(seed)) 
+        set.seed(seed)
+    f <- function(x) {
+        35 * dnorm(x, mean = 1, sd = 0.8) + 65 * dnorm(x, mean = 4, 
+            sd = 1.5) + (x > 4.5) * (exp((1.25 * (x - 4.5))) - 
+            1) + 3 * dnorm(x, mean = 2.5, sd = 0.3)
+    }
+    x <- c(seq(xlim[1], 1.9, length = n * 5/8), seq(3.7, xlim[2], 
+        length = n * 3/8))
+    x <- sample(x, size = n)
+    x <- x + rnorm(n, sd = x.jitter)
+    x <- sort(x)
+    
+    if (isTRUE(truth)) return (tibble(y = f(x), x = x))
+    else {
+       y.err <- rt(n, df = 1)
+       y <- f(x) + sign(y.err) * pmin(abs(y.err), rnorm(n, mean = 4.1))
+       return(tibble(y = y, x = x))
+    }
+}
+
+dat <- my_gen_smooth(2000, seed = 123) %>%
+  mutate(fx = my_gen_smooth(2000, seed = 123, truth = TRUE)$y)
+
+
+uix <- seq(min(dat$x), max(dat$x), length = 25)
+nys.samp <- rep(NA, 25) 
+for (i in 1:25) {
+  nys.samp[i] <- which.min(abs(dat$x - uix[i]))
+}
+
+mod <- iprior(y ~ x, dat, nystrom = nys.samp, kernel = "se",
+              control = list(silent = TRUE))
+tmp <- predict(mod, dat) 
+# h <- kern_se(dat$x)
+# lambda <- get_lambda(mod)
+# psi <- get_psi(mod)
+# Vy <- (h * lambda) %*% (h * lambda) + diag(1/psi, nrow(dat))
+# Vynew <- (h * lambda) %*% solve(Vy, h * lambda) + diag(1 / psi, nrow(dat))
+
+dat <- 
+  dat %>%
+  mutate(yhat = tmp$y)
+         # lower = yhat + qnorm(0.025) * sqrt(diag(Vynew)), 
+         # upper = yhat + qnorm(0.975) * sqrt(diag(Vynew)))
+
+ggplot(dat, aes(x, y)) +
+  # geom_ribbon(aes(ymin = lower, ymax = upper), fill = solidpink, alpha = 0.25) +
+  geom_point(alpha = 0.1) +
+  geom_point(data = slice(dat, nys.samp), size = 2, shape = 1, stroke = 1,
+             col = navyblue) +
+  geom_line(aes(x, fx, col = "1"), linewidth = 1) +
+  geom_line(aes(x, yhat, col = "2"), linewidth = 1) +
+  scale_colour_manual(values = c(solidpink, navyblue), 
+                      labels = c("Truth", "I-prior\nestimate"),
+                      name = NULL) +
+  theme(legend.position = c(1 - 0.1, 0 + 0.2),
+        legend.background = element_rect(fill = scales::alpha('white', 0)))
+```
+
+Trick: low-rank matrix approximations.
+Suppose $H\approx QQ^\top$, where $Q \in \bbR^{n\times m}$, $m \ll n$.
+Then, using the Woodbury matrix identity,
+$$
+V_y^{-1} = (H\Psi H + \Psi^{-1})^{-1} \approx \Psi - \Psi Q\big((Q^\top \Psi Q)^{-1} + Q^\top\Psi Q\big)^{-1} Q^\top \Psi
+$$
+is a much cheaper $O(nm^2)$ operation \citep{williams2001using}.
+
+# Data examples
+
+## Longitudinal analysis
+
+### Longitudinal analysis of cow growth data
+
+> \textcolor{navyblue}{Aim:  Discern whether there is a difference between two treatments given to cows, and whether this effect varies among individual cows.}
+
+Data consists of a balanced longitudinal set of weights $y_{it}$ for 60 cows.
+The herd were randomly split between two treatment groups ($x_i$).
+Model
+$$
+y_{it} = f_{1t}(i) + f_{2t}(x_i) + f_{12t}(i, x_i) + \epsilon_{it}
+$$
+assuming smooth effect of time, and nominal effect of cow index and treatment group. 
+\small
+
+|   | Explanation                           | Model               | Log-lik. |   No. of param. |
+|---|---------------------------------------|---------------------|---------:|----------------:|
+| 1 | Growth due to cows only               | $$f_{1t}$$          |  $-2792.2$ |               3 | 
+| 2 | Growth due to treatment only          | $$f_{2t}$$          |  $-2295.2$ |               3 | 
+| 3 | Growth due to both  | $$f_{1t} + f_{2t}$$ |  $-2270.9$ |               4 |
+| 4 | Growth due to both with cow-treatment variation | $$f_{1t} + f_{2t} + f_{12t}$$ | $-2250.9$ | 4 |  
+
+### Growth curve
+
+```{r cowgrowth, fig.height = 3.7}
+data(cattle, package = "jmcm")
+names(cattle) <- c("id", "time", "group", "weight")
+cattle$id <- as.factor(cattle$id)  # convert to factors
+levels(cattle$group) <- c("Treatment A", "Treatment B")
+
+# Model 5: weight ~ f(time:cow:treatment)
+# mod5 <- iprior(weight ~ id * group * time, cattle, kernel = "fbm")
+lambda <- c(-3.3405112, -0.9171739, -0.0470558)
+psi <- 0.06549954
+mod5 <- iprior(weight ~ id * group * time, cattle, kernel = "fbm", 
+               lambda = lambda, psi = psi, fixed.hyp = TRUE)
+
+cattle %>%
+  group_by(id) %>%
+  complete(time = 0:133) %>%
+  # group_by(id, group, weight) %>%
+  fill(group, weight) %>%
+  ungroup() -> df_pred
+
+tmp <- predict(mod5, newdata = as.data.frame(df_pred))
+
+df_pred %>%
+  mutate(y = tmp$y) %>%
+  ggplot(aes(time, y, group = id, col = weight)) +
+  geom_line() +
+  # geom_point(data = cattle, aes(time, weight)) +
+  facet_grid(. ~ group) +
+  scale_colour_viridis_c() +
+  guides(col = "none") +
+  theme_classic() +
+  labs(x = "Time (days)", y = "Weight (kg)")
+```
+
+
+## Predicting fat content
+
+### Predicting fat content in meat samples
+
+> \textcolor{navyblue}{Aim: Predict fat content of meat samples from its spectrometric curves (Tecator data set).}
+
+For each meat sample $i$, data consist of 100 channel spectrum of absorbances ($x_i(t)$) and its corresponding fat content ($y_i$).
+Train/test split is 160 + 55.
+Model
+$$
+y_i = f(x_i) + \epsilon_i
+$$
+where $x_i$ is the $i$th spectral curve. 
+
+\vspace{0.5em}
+
+```{r tecator, fig.height = 2.5, fig.width = 8}
+# Load data set
+data(tecator, package = "caret")
+endpoints <- as_tibble(endpoints)
+colnames(endpoints) <- c("water", "fat", "protein")
+absorp <- as_tibble(absorp)
+colnames(absorp) <- seq(850, 1050, length = 100)
+
+dat <-
+  bind_cols(id = seq_len(nrow(endpoints)), endpoints, absorp) %>%
+  slice_sample(n = 100)
+
+p1 <- ggplot(dat, aes(x = 1, y = fat)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, aes(col = fat)) +
+  scale_color_viridis_c() +
+  scale_x_continuous(breaks = 1, label = " ") +
+  guides(col = "none") +
+  labs(x = " ", y = "Fat content (%)") +
+  theme_classic() +
+  theme(axis.ticks.x = element_blank())
+
+p2 <- dat %>%
+  pivot_longer(cols = `850`:`1050`, names_to = "x") %>%
+  ggplot(aes(as.numeric(x), value, col = fat, group = id)) +
+  geom_line() +
+  scale_color_viridis_c() +
+  guides(col = "none") +
+  theme_classic() +
+  labs(x = "Wavelength (nm)", y = "Absorbance")
+
+cowplot::plot_grid(p1, p2, rel_widths = c(1, 3), labels = c("y", "x"))
+```
+
+### Results
+
+\begin{table}[t!]
+\centering
+\begin{tabular}{p{9cm}rr}
+\toprule
+&\multicolumn{2}{c}{RMSE} \\
+\cline{2-3}
+Model & Train & Test \\
+\midrule
+\emph{I-prior} \\
+\hspace{0.5em} Linear
+& 2.89
+& 2.89 \\
+\hspace{0.5em} Quadratic
+& 0.72
+& 0.97 \\
+\hspace{0.5em} Smooth (fBm-0.70)
+& 0.19
+& 0.63 \\[0.5em]
+\emph{Others} \\
+\hspace{0.5em} Linear functional regression      && 2.78 \\
+\hspace{0.5em} Quadratic functional regression    && 0.80 \\
+\hspace{0.5em} Gaussian process regression       && 2.93 \\
+\hspace{0.5em} Neural networks                   && 0.36 \\
+\hspace{0.5em} Kernel smoothing                  && 1.49 \\
+\hspace{0.5em} Multivariate adaptive regression splines (MARS)                              && 0.88 \\
+\hspace{0.5em} Functional additive regression (CSEFAM)                          && 0.85 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+# Conclusions & further work
+
+### Summary
+
+\begin{empheq}[box=\tcbhighmath]{align*}
+\begin{split}
+&\color{navyblue}\text{A novel methodology for fitting a wide range of parameteric} \\[-0.2em]
+&\color{navyblue}\text{and nonparametric regression models.}
+\end{split}
+\end{empheq}
+
+
+- Parsimonious model specification and simple estimation.
+
+- Inference is straightforward.
+
+- Often yield comparable predictions to competing ML algorithms.
+
+\vspace{1em}
+
+Further work
+
+- Extension to non-Gaussian errors (e.g. classification or count data).
+
+- $O(n^3)$ computational bottleneck.
+
 
 
 

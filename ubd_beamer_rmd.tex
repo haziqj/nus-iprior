@@ -119,6 +119,7 @@ $endif$
 \usetikzlibrary{shapes.geometric,fit,arrows.meta}
 \usepackage{xltabular}
 \usepackage{longtable,booktabs,multirow,colortbl}
+\usepackage{multicol}
 \usepackage{caption}
 % Make caption package work with longtable
 \makeatletter
@@ -450,9 +451,16 @@ $endif$
 
 $if(toc)$
 \begin{frame}[allowframebreaks=0.8]{$toctitle$}
-	\tableofcontents
+  $if(tocmulticol)$
+  \begin{multicols}{$tocmulticol$}
+  \tableofcontents
+  \end{multicols}
+  $else$
+  \tableofcontents
+  $endif$
 \end{frame}
 $endif$
+
 
 $body$
 

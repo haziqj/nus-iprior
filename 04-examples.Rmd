@@ -58,7 +58,7 @@ navyblue <- "#002f5c"
 solidpink <- "#8E3B46"
 ```
 
-# Examples
+# Data examples
 
 ## Longitudinal analysis of growth of cattle
 
