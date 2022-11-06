@@ -24,6 +24,7 @@ logo: true
 progressdots: true
 transitions: true
 handout: false
+thankyou: true
 bibliography: refs.bib
 refslide: true
 aspectratio: 43
