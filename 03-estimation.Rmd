@@ -175,17 +175,80 @@ The M-step entails solving
 
 ## Computational bottleneck
 
-In either estimation method, $V_y^{-1}$ is computed and takes $O(n^3)$ time; storage requirements is $O(n^2)$. 
+In either estimation method, $V_y^{-1}$ is computed and takes $O(n^3)$ time.
 
-\vspace{1em}
+\vspace{-0.2em}
+
+```{r nystrom, fig.height = 2.3, fig.width = 6.5}
+my_gen_smooth <- function(n = 150, xlim = c(0.2, 4.6), x.jitter = 0.65, 
+                          seed = NULL, truth = FALSE) {
+    if (!is.null(seed)) 
+        set.seed(seed)
+    f <- function(x) {
+        35 * dnorm(x, mean = 1, sd = 0.8) + 65 * dnorm(x, mean = 4, 
+            sd = 1.5) + (x > 4.5) * (exp((1.25 * (x - 4.5))) - 
+            1) + 3 * dnorm(x, mean = 2.5, sd = 0.3)
+    }
+    x <- c(seq(xlim[1], 1.9, length = n * 5/8), seq(3.7, xlim[2], 
+        length = n * 3/8))
+    x <- sample(x, size = n)
+    x <- x + rnorm(n, sd = x.jitter)
+    x <- sort(x)
+    
+    if (isTRUE(truth)) return (tibble(y = f(x), x = x))
+    else {
+       y.err <- rt(n, df = 1)
+       y <- f(x) + sign(y.err) * pmin(abs(y.err), rnorm(n, mean = 4.1))
+       return(tibble(y = y, x = x))
+    }
+}
+
+dat <- my_gen_smooth(2000, seed = 123) %>%
+  mutate(fx = my_gen_smooth(2000, seed = 123, truth = TRUE)$y)
+
+
+uix <- seq(min(dat$x), max(dat$x), length = 25)
+nys.samp <- rep(NA, 25) 
+for (i in 1:25) {
+  nys.samp[i] <- which.min(abs(dat$x - uix[i]))
+}
+
+mod <- iprior(y ~ x, dat, nystrom = nys.samp, kernel = "se",
+              control = list(silent = TRUE))
+tmp <- predict(mod, dat) 
+# h <- kern_se(dat$x)
+# lambda <- get_lambda(mod)
+# psi <- get_psi(mod)
+# Vy <- (h * lambda) %*% (h * lambda) + diag(1/psi, nrow(dat))
+# Vynew <- (h * lambda) %*% solve(Vy, h * lambda) + diag(1 / psi, nrow(dat))
+
+dat <- 
+  dat %>%
+  mutate(yhat = tmp$y)
+         # lower = yhat + qnorm(0.025) * sqrt(diag(Vynew)), 
+         # upper = yhat + qnorm(0.975) * sqrt(diag(Vynew)))
+
+ggplot(dat, aes(x, y)) +
+  # geom_ribbon(aes(ymin = lower, ymax = upper), fill = solidpink, alpha = 0.25) +
+  geom_point(alpha = 0.1) +
+  geom_point(data = slice(dat, nys.samp), size = 2, shape = 1, stroke = 1,
+             col = navyblue) +
+  geom_line(aes(x, fx, col = "1"), size = 1) +
+  geom_line(aes(x, yhat, col = "2"), size = 1) +
+  scale_colour_manual(values = c(solidpink, navyblue), 
+                      labels = c("Truth", "I-prior\nestimate"),
+                      name = NULL) +
+  theme(legend.position = c(1 - 0.1, 0 + 0.2),
+        legend.background = element_rect(fill = scales::alpha('white', 0)))
+```
 
 Trick: low-rank matrix approximations.
-Suppose $H\approx QQ^\top$, where $Q \in \bbR^{n\times m}$ where $m \ll n$.
+Suppose $H\approx QQ^\top$, where $Q \in \bbR^{n\times m}$, $m \ll n$.
 Then, using the Woodbury matrix identity,
 $$
 V_y^{-1} = (H\Psi H + \Psi^{-1})^{-1} \approx \Psi - \Psi Q\big((Q^\top \Psi Q)^{-1} + Q^\top\Psi Q\big)^{-1} Q^\top \Psi
 $$
-is a much cheaper $O(nm^2)$ operation.
+is a much cheaper $O(nm^2)$ operation \citep{williams2001using}.
 
 
 
