@@ -74,18 +74,24 @@ y_i = f(x_i) + \epsilon_i \\
 \end{gathered}
 \end{equation}
 
-where each $y_i\in\bbR$, $x_i\in \cX$ (some set of covariates), and $f$ is a regression function.
+where each $y_i\in\bbR$, $x_i\in \cX$ (some set of covariates), and $f$ is a regression function. \pause
 This forms the basis for a multitude of statistical models:
 
 1. Ordinary linear regression when $f$ is parameterised linearly.
-<!-- $f(x_i) = x_i^\top\beta$, with $\cX,\beta\in\bbR^p$. -->
+
+\pause
 
 2. Varying intercepts/slopes model when $\cX$ is grouped.
-<!-- $f(x_{ij},j) = f_1(x_i) + f_2(j) + f_{12}(x_{ij},j)$. -->
+
+\pause
 
 3. Smoothing models when $f$ is a smooth function.
 
+\pause
+
 4. Functional regression when $\cX$ is functional.
+
+\pause
 
 ::: {.block}
 #### Goal
@@ -220,7 +226,7 @@ cowplot::plot_grid(p1, p2, rel_widths = c(1, 3), labels = c("y", "x"))
 
 ### The I-prior
 
-For the normal model stated in \eqref{mod1}, we assume that $f$ lies in some RKHS of functions $\cF$, with reproducing kernel $h$ over $\cX$.
+For the normal model stated in \eqref{mod1}, we assume that $f$ lies in some RKHS of functions $\cF$, with reproducing kernel $h$ over $\cX$. \pause
 
 ::: {.definition name="I-prior"}
 \label{def:iprior}
@@ -232,6 +238,8 @@ f(x) = f_0(x) + \sum_{i=1}^n h(x,x_i)w_i \\
 \end{gathered}
 \end{equation}
 :::
+
+\pause
 
 Therefore, the covariance kernel of $f(x)$ is determined by the function 
 \begin{equation}
@@ -266,7 +274,7 @@ p\big(f \mid y\big) =
 \frac{p(y \mid f)p(f)}
 {\int p( y \mid f) p(f) \dint  f}.
 $$
-
+\pause
 
 2. Posterior predictive distribution (given a new data point $x_{*}$)
 $$
@@ -337,7 +345,7 @@ ggplot(dat, aes(x, y)) +
 
 ::: {.onlyenv latex=<2>}
 
-Choose $h(x,x') = e^{-\frac{\lVert x - x' \rVert^2}{2s^2}}$ (Gaussian kernel).
+Choose $h(x,x') = e^{-\frac{\lVert x - x' \rVert^2}{2}}$ (Gaussian kernel).
 Sample paths from I-prior:
 
 ```{r priorsamp, fig.height = 3.3}
@@ -490,7 +498,7 @@ knitr::include_graphics("figure/wordcloud.pdf")
 
 :::
 
-\vspace{0.5em}
+\vspace{0.4em}\pause
 
 Competitors:
 
@@ -573,6 +581,8 @@ i. the set of positive definite functions; and
 ii. the set of RKHSs.
 :::
 
+\pause
+
 ```{r rkhss, include = FALSE}
 psi <- 1
 lambda <-  1
@@ -650,7 +660,7 @@ We can build complex RKHSs by adding and multiplying kernels:
 
 - $\cF = \cF_1 \otimes \cF_2$ is an RKHS defined by $h = h_1h_2$.
 
-\vspace{0.5em}
+\vspace{0.5em}\pause
 
 ::: {.example name="ANOVA RKHS"}
 Consider RKHSs $\cF_k$ with kernel $h_k$, $k=1,\dots,p$.
@@ -675,6 +685,7 @@ $$
 \big(y_j - \langle f, h(\cdot,x_j) \rangle_\cF \big)
 $$
 
+\pause
 Variational calculus leads us to the following result:
 
 ::: {.lemma name="Fisher information for regression function"}
@@ -689,11 +700,11 @@ where '$\otimes$' is the tensor product of two vectors in $\cF$.
 
 It's helpful to think of $\cI_f$ as a bilinear form $\cI_f:\cF \times \cF \to \bbR$, making it possible to compute the Fisher information on linear functionals $f_g = \langle f, g \rangle_\cF$, $\forall g\in\cF$ as $\cI_{f_g} = \langle \cI_f, g\otimes g\rangle_{\cF \otimes \cF}$.
 
-\vspace{1em}
+\vspace{0.8em}\pause
 
 
 In particular, between two points $f_x:=f(x)$ and $f_{x'}:=f(x')$
-\textcolor{gray}{[since $f_x = \langle f,h(\cdot,x)\rangle_\cF$]}
+<!-- \textcolor{gray}{[since $f_x = \langle f,h(\cdot,x)\rangle_\cF$]} -->
 we have:
 \begin{align}
 \cI_f(x,x')
@@ -702,9 +713,12 @@ we have:
 \ , \ h(\cdot,x) \otimes h(\cdot,x') \right\rangle_{\cF  \otimes \cF} \nonumber \\
 &= \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}
 \left\langle h(\cdot,x) , h(\cdot,x_i) \right\rangle_{\cF}
-\left\langle h(\cdot,x') , h(\cdot,x_j) \right\rangle_{\cF} \nonumber \\
-&= \sum_{i=1}^n\sum_{j=1}^n \psi_{ij}  h(x,x_i)h(x',x_j) =: k(x,x') \tag{from \ref{eq:ipriorcovfn}}
+\left\langle h(\cdot,x') , h(\cdot,x_j) \right\rangle_{\cF} \nonumber 
 \end{align}
+
+\begin{empheq}[box=\tcbhighmath]{align}
+&=\textcolor{navyblue}{\sum_{i=1}^n\sum_{j=1}^n \psi_{ij}  h(x,x_i)h(x',x_j) =: k(x,x')} \tag{from \ref{eq:ipriorcovfn}}
+\end{empheq}
 
 
 ## The I-prior
@@ -756,12 +770,12 @@ y_i = f_0(x_i) + \sum_{j=1}^n h_\lambda(x_i,x_j)w_j + \epsilon_i \\
 \end{gathered}
 \end{equation}
 
-A number of hyperparameters remain undetermined. 
+A number of hyperparameters remain undetermined. \pause
 Further assumptions:
 
-1. The error variance $\bPsi$ is known up to a low-dimensional parameter, e.g. $\bPsi = \psi \mathbf I_n$, $\psi >0$ (iid errors).
+1. The error variance $\bPsi$ is known up to a low-dimensional parameter, e.g. $\bPsi = \psi \mathbf I_n$, $\psi >0$ (iid errors). \pause
 
-2. Each RKHS $\cF$ is defined by the kernel $h_\lambda = \lambda \tilde h$, where $\lambda \in \bbR$ is a scale^[This necessitates the use of reproducing kernel Krein spaces, as the kernels may no longer be positive definite.] parameter.
+2. Each RKHS $\cF$ is defined by the kernel $h_\lambda = \lambda \tilde h$, where $\lambda \in \bbR$ is a scale^[This necessitates the use of reproducing kernel Krein spaces, as the kernels may no longer be positive definite.] parameter. \pause
 
 3. Certain kernels also require tuning, e.g. the Hurst coefficient of the fBm or the lengthscale of the Gaussian. For now, assume fixed.
 
@@ -804,7 +818,7 @@ An alternative view of the model:
 \mathbf y\mid\mathbf w &\sim \N_n(\mathbf f_0 + \mathbf H_\lambda \mathbf w,  \boldsymbol\Psi^{-1}) \\
 \mathbf w &\sim \N_n(\mathbf 0, \bPsi )
 \end{align*}
-in which the $\mathbf w$ are "missing". 
+in which the $\mathbf w$ are "missing". \pause
 The full data log-likelihood is
 \begin{align*}
 L(\lambda, \bPsi \mid \mathbf y, \mathbf w)
@@ -813,7 +827,7 @@ L(\lambda, \bPsi \mid \mathbf y, \mathbf w)
 - \frac{1}{2}(\mathbf y - \mathbf f_0)^\top \bPsi (\mathbf y - \mathbf f_0) 
 - \frac{1}{2}\operatorname{tr}\left(\mathbf V_y \mathbf w \mathbf w^\top \right) \\
 &\hspace{2em}+ (\mathbf y - \mathbf f_0)^\top \bPsi \mathbf H_\lambda \mathbf w
-\end{align*}
+\end{align*} \pause
 
 The E-step entails computing 
 $$
@@ -851,7 +865,7 @@ The M-step entails solving
 
 ## Computational bottleneck
 
-In either estimation method, $V_y^{-1}$ is computed and takes $O(n^3)$ time.
+In either estimation method, $V_y^{-1}$ is computed and takes $O(n^3)$ time. \pause
 
 \vspace{-0.2em}
 
