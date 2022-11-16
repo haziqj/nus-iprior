@@ -955,14 +955,15 @@ $$
 y_{it} = f_{1t}(i) + f_{2t}(x_i) + f_{12t}(i, x_i) + \epsilon_{it}
 $$
 assuming smooth effect of time, and nominal effect of cow index and treatment group. 
-\small
+\footnotesize
 
 |   | Explanation                           | Model               | Log-lik. |   No. of param. |
 |---|---------------------------------------|---------------------|---------:|----------------:|
-| 1 | Growth due to cows only               | $$f_{1t}$$          |  $-2792.2$ |               3 | 
-| 2 | Growth due to treatment only          | $$f_{2t}$$          |  $-2295.2$ |               3 | 
-| 3 | Growth due to both  | $$f_{1t} + f_{2t}$$ |  $-2270.9$ |               4 |
-| 4 | Growth due to both with cow-treatment variation | $$f_{1t} + f_{2t} + f_{12t}$$ | $-2250.9$ | 4 |  
+| 1 | Growth due to time only               | $$\emptyset$$          |  $-2792.8$ |               2 | 
+| 2 | Growth due to cows only               | $$f_{1t}$$          |  $-2792.2$ |               3 | 
+| 3 | Growth due to treatment only          | $$f_{2t}$$          |  $-2295.2$ |               3 | 
+| 4 | Growth due to both  | $$f_{1t} + f_{2t}$$ |  $-2270.9$ |               4 |
+| 5 | Growth due to both with cow-treatment variation | $$f_{1t} + f_{2t} + f_{12t}$$ | $-2250.9$ | 4 |  
 
 ### Growth curve
 
@@ -1074,7 +1075,7 @@ Model & Train & Test \\
 \emph{Others} \\
 \hspace{0.5em} Linear functional regression      && 2.78 \\
 \hspace{0.5em} Quadratic functional regression    && 0.80 \\
-\hspace{0.5em} Gaussian process regression       && 2.93 \\
+\hspace{0.5em} Gaussian process regression       && 2.06 \\
 \hspace{0.5em} Neural networks                   && 0.36 \\
 \hspace{0.5em} Kernel smoothing                  && 1.49 \\
 \hspace{0.5em} Multivariate adaptive regression splines (MARS)                              && 0.88 \\
